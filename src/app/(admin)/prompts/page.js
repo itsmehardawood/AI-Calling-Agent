@@ -2,7 +2,7 @@
 "use client";
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Plus, Edit, Trash2, Power, Sparkles, Save, ArrowLeft, Check, MoreVertical, Filter, Eye } from "lucide-react";
+import { Plus, Edit, Trash2, Power, Sparkles, Save, ArrowLeft, Check, MoreVertical, Filter, Eye, X } from "lucide-react";
 import {
   generatePrompt,
   createPrompt,
@@ -23,6 +23,7 @@ function PromptsManagementPageInner() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedPromptForDashboard, setSelectedPromptForDashboard] = useState(null);
+  const [expandedProductIndex, setExpandedProductIndex] = useState(0); // Track which product is expanded
 
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -98,10 +99,12 @@ function PromptsManagementPageInner() {
   };
 
   const addProduct = () => {
+    const newIndex = formData.products.length;
     setFormData((prev) => ({
       ...prev,
       products: [...prev.products, { name: "", category: "", description: "", price: "", features: [""] }],
     }));
+    setExpandedProductIndex(newIndex); // Expand the newly added product
   };
 
   const removeProduct = (index) => {
@@ -109,6 +112,10 @@ function PromptsManagementPageInner() {
       ...prev,
       products: prev.products.filter((_, i) => i !== index),
     }));
+    // Adjust expanded index if needed
+    if (expandedProductIndex >= index && expandedProductIndex > 0) {
+      setExpandedProductIndex(expandedProductIndex - 1);
+    }
   };
 
   const addFeature = (productIndex) => {
@@ -195,6 +202,7 @@ function PromptsManagementPageInner() {
     setGeneratedText("");
     setEditingPrompt(null);
     setShowCreateForm(false);
+    setExpandedProductIndex(0); // Reset to first product
   };
 
   const handlePromptSelection = (prompt) => {
@@ -247,7 +255,7 @@ function PromptsManagementPageInner() {
               </button> */}
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">
-                  {selectionMode ? "Select Prompt" : "Prompt Management"}
+                  {selectionMode ? "Select Business" : "Business Management"}
                 </h1>
                 <p className="text-gray-600 mt-1">
                   {selectionMode 
@@ -286,10 +294,10 @@ function PromptsManagementPageInner() {
             <div className="bg-slate-700 flex items-center justify-between border-b border-gray-200 px-6 py-4">
               <div>
                 <h2 className="text-lg font-semibold text-gray-100">
-                  {selectionMode ? "Available Prompts" : "All Prompts"}
+                  {selectionMode ? "Available Businesses" : "All Businesses"}
                 </h2>
                 <p className="text-sm text-gray-100 mt-1">
-                  {prompts.length} prompt{prompts.length !== 1 ? 's' : ''} total
+                  {prompts.length} Business{prompts.length !== 1 ? 's' : ''} total
                 </p>
               </div>
               
@@ -299,7 +307,7 @@ function PromptsManagementPageInner() {
                   className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                 >
                   <Plus size={18} />
-                  Create New Prompt
+                  Create New Business
                 </button>
               )}
             </div>
@@ -480,158 +488,266 @@ function PromptsManagementPageInner() {
 
         {/* Create/Edit Form Modal */}
         {showCreateForm && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
-              <div className="p-6">
-                <h2 className="text-2xl font-bold mb-6 text-gray-900">
-                  {editingPrompt ? "Edit Prompt" : "Create New Prompt"}
-                </h2>
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-xl max-w-5xl w-full max-h-[90vh] overflow-hidden shadow-2xl animate-fadeIn">
+              {/* Modal Header */}
+              <div className="bg-gradient-to-r from-slate-900 to-slate-800 px-6 py-5 flex items-center justify-between sticky top-0 z-10">
+                <div>
+                  <h2 className="text-2xl font-bold text-white">
+                    {editingPrompt ? "Edit Business" : "Create New Business"}
+                  </h2>
+                  <p className="text-blue-100 text-sm mt-1">
+                    {editingPrompt ? "Update your business information" : "Add a new business to your collection"}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={resetForm}
+                  className="text-white hover:bg-white/20 rounded-lg p-2 transition-colors"
+                  title="Close"
+                >
+                  <X size={24} />
+                </button>
+              </div>
 
+              {/* Modal Body */}
+              <div className="overflow-y-auto max-h-[calc(90vh-140px)] p-6">
                 <form onSubmit={handleSubmit} className="space-y-6">
-                  {/* Basic Info */}
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium mb-2 text-gray-700">Business Name</label>
-                      <input
-                        type="text"
-                        name="business"
-                        value={formData.business}
-                        onChange={handleInputChange}
-                        className="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                        required
-                      />
+                  {/* Basic Info Section */}
+                  <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-5 border border-gray-200">
+                    <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                      <div className="w-1 h-6 bg-blue-600 rounded-full"></div>
+                      Basic Information
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium mb-2 text-gray-700">
+                          Business Name <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          name="business"
+                          value={formData.business}
+                          onChange={handleInputChange}
+                          className="w-full bg-white border border-gray-300 rounded-lg px-4 py-2.5 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+                          placeholder="Enter business name"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2 text-gray-700">
+                          Tone <span className="text-red-500">*</span>
+                        </label>
+                        <select
+                          name="tone"
+                          value={formData.tone}
+                          onChange={handleInputChange}
+                          className="w-full bg-white border border-gray-300 rounded-lg px-4 py-2.5 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+                        >
+                          <option value="professional">Professional</option>
+                          <option value="friendly">Friendly</option>
+                          <option value="casual">Casual</option>
+                          <option value="formal">Formal</option>
+                        </select>
+                      </div>
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-2 text-gray-700">Tone</label>
+
+                    <div className="mt-4">
+                      <label className="block text-sm font-medium mb-2 text-gray-700">
+                        Prompt Type <span className="text-red-500">*</span>
+                      </label>
                       <select
-                        name="tone"
-                        value={formData.tone}
+                        name="prompt_type"
+                        value={formData.prompt_type}
                         onChange={handleInputChange}
-                        className="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                        className="w-full bg-white border border-gray-300 rounded-lg px-4 py-2.5 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
                       >
-                        <option value="professional">Professional</option>
-                        <option value="friendly">Friendly</option>
-                        <option value="casual">Casual</option>
-                        <option value="formal">Formal</option>
+                        <option value="sales">Sales</option>
+                        <option value="support">Support</option>
                       </select>
                     </div>
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-medium mb-2 text-gray-700">Prompt Type</label>
-                    <select
-                      name="prompt_type"
-                      value={formData.prompt_type}
-                      onChange={handleInputChange}
-                      className="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                    >
-                      <option value="sales">Sales</option>
-                      <option value="support">Support</option>
-                    </select>
-                  </div>
-
                   {/* Products */}
-                  <div>
+                  <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-5 border border-green-200">
                     <div className="flex justify-between items-center mb-4">
-                      <label className="block text-sm font-medium text-gray-700">Products</label>
+                      <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+                        <div className="w-1 h-6 bg-green-600 rounded-full"></div>
+                        Products
+                        <span className="text-sm font-normal text-gray-600">
+                          ({formData.products.length})
+                        </span>
+                      </h3>
                       <button
                         type="button"
                         onClick={addProduct}
-                        className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm transition-colors"
+                        className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm transition-all shadow-sm hover:shadow-md flex items-center gap-2"
                       >
+                        <Plus size={16} />
                         Add Product
                       </button>
                     </div>
 
-                    {formData.products.map((product, productIndex) => (
-                      <div key={productIndex} className="border border-gray-300 bg-gray-50 rounded-lg p-4 mb-4">
-                        <div className="flex justify-between items-center mb-3">
-                          <h4 className="font-medium text-gray-900">Product {productIndex + 1}</h4>
-                          {formData.products.length > 1 && (
-                            <button
-                              type="button"
-                              onClick={() => removeProduct(productIndex)}
-                              className="text-red-600 hover:text-red-800 transition-colors"
-                            >
-                              <Trash2 size={16} />
-                            </button>
-                          )}
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-3 mb-3">
-                          <input
-                            type="text"
-                            placeholder="Product Name"
-                            value={product.name}
-                            onChange={(e) => handleProductChange(productIndex, "name", e.target.value)}
-                            className="bg-white border border-gray-300 rounded px-3 py-2 text-gray-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                            required
-                          />
-                          <input
-                            type="text"
-                            placeholder="Category"
-                            value={product.category}
-                            onChange={(e) => handleProductChange(productIndex, "category", e.target.value)}
-                            className="bg-white border border-gray-300 rounded px-3 py-2 text-gray-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                            required
-                          />
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-3 mb-3">
-                          <input
-                            type="text"
-                            placeholder="Price"
-                            value={product.price}
-                            onChange={(e) => handleProductChange(productIndex, "price", e.target.value)}
-                            className="bg-white border border-gray-300 rounded px-3 py-2 text-gray-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                            required
-                          />
-                          <textarea
-                            placeholder="Description"
-                            value={product.description}
-                            onChange={(e) => handleProductChange(productIndex, "description", e.target.value)}
-                            className="bg-white border border-gray-300 rounded px-3 py-2 text-gray-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                            rows="2"
-                            required
-                          />
-                        </div>
-
-                        {/* Features */}
-                        <div>
-                          <div className="flex justify-between items-center mb-2">
-                            <label className="text-sm font-medium text-gray-700">Features</label>
-                            <button
-                              type="button"
-                              onClick={() => addFeature(productIndex)}
-                              className="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-xs transition-colors"
-                            >
-                              Add Feature
-                            </button>
-                          </div>
-                          {product.features.map((feature, featureIndex) => (
-                            <div key={featureIndex} className="flex gap-2 mb-2">
-                              <input
-                                type="text"
-                                placeholder="Feature"
-                                value={feature}
-                                onChange={(e) => handleFeatureChange(productIndex, featureIndex, e.target.value)}
-                                className="flex-1 bg-white border border-gray-300 rounded px-3 py-1 text-gray-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                                required
-                              />
-                              {product.features.length > 1 && (
+                    {formData.products.map((product, productIndex) => {
+                      const isExpanded = expandedProductIndex === productIndex;
+                      
+                      return (
+                        <div key={productIndex} className="border border-gray-300 bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                          {/* Product Header - Always Visible */}
+                          <div 
+                            className="flex justify-between items-center p-4 cursor-pointer hover:bg-gray-50 transition-colors"
+                            onClick={() => setExpandedProductIndex(isExpanded ? -1 : productIndex)}
+                          >
+                            <div className="flex items-center gap-3 flex-1">
+                              <div className={`transform transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`}>
+                                <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                </svg>
+                              </div>
+                              <div className="flex items-center gap-3 flex-1">
+                                <div className="w-8 h-8 bg-gradient-to-br from-slate-900 to-slate-700 rounded-lg flex items-center justify-center text-white font-bold text-sm">
+                                  {productIndex + 1}
+                                </div>
+                                <div>
+                                  <h4 className="font-semibold text-gray-900">
+                                    {product.name || `Product ${productIndex + 1}`}
+                                  </h4>
+                                  {product.category && (
+                                    <span className="text-xs text-gray-500">
+                                      {product.category}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                              {product.name && product.category && (
+                                <span className="text-xs bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-medium">
+                                  {product.price || 'No price'}
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-2 ml-2">
+                              {formData.products.length > 1 && (
                                 <button
                                   type="button"
-                                  onClick={() => removeFeature(productIndex, featureIndex)}
-                                  className="text-red-600 hover:text-red-800 transition-colors"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    removeProduct(productIndex);
+                                  }}
+                                  className="text-red-600 hover:bg-red-50 rounded-lg p-2 transition-colors"
+                                  title="Delete product"
                                 >
-                                  <Trash2 size={14} />
+                                  <Trash2 size={18} />
                                 </button>
                               )}
                             </div>
-                          ))}
+                          </div>
+
+                          {/* Product Details - Collapsible */}
+                          {isExpanded && (
+                            <div className="p-4 pt-0 space-y-4 bg-gray-50 border-t border-gray-200">
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                <div>
+                                  <label className="block text-xs font-medium mb-1.5 text-gray-700">
+                                    Product Name <span className="text-red-500">*</span>
+                                  </label>
+                                  <input
+                                    type="text"
+                                    placeholder="e.g., Premium Widget"
+                                    value={product.name}
+                                    onChange={(e) => handleProductChange(productIndex, "name", e.target.value)}
+                                    className="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+                                    required
+                                  />
+                                </div>
+                                <div>
+                                  <label className="block text-xs font-medium mb-1.5 text-gray-700">
+                                    Category <span className="text-red-500">*</span>
+                                  </label>
+                                  <input
+                                    type="text"
+                                    placeholder="e.g., Electronics"
+                                    value={product.category}
+                                    onChange={(e) => handleProductChange(productIndex, "category", e.target.value)}
+                                    className="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+                                    required
+                                  />
+                                </div>
+                              </div>
+
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                <div>
+                                  <label className="block text-xs font-medium mb-1.5 text-gray-700">
+                                    Price <span className="text-red-500">*</span>
+                                  </label>
+                                  <input
+                                    type="text"
+                                    placeholder="e.g., $99.99"
+                                    value={product.price}
+                                    onChange={(e) => handleProductChange(productIndex, "price", e.target.value)}
+                                    className="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+                                    required
+                                  />
+                                </div>
+                                <div>
+                                  <label className="block text-xs font-medium mb-1.5 text-gray-700">
+                                    Description <span className="text-red-500">*</span>
+                                  </label>
+                                  <textarea
+                                    placeholder="Brief description of the product"
+                                    value={product.description}
+                                    onChange={(e) => handleProductChange(productIndex, "description", e.target.value)}
+                                    className="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all resize-none"
+                                    rows="2"
+                                    required
+                                  />
+                                </div>
+                              </div>
+
+                              {/* Features */}
+                              <div className="bg-white rounded-lg p-3 border border-gray-200">
+                                <div className="flex justify-between items-center mb-3">
+                                  <label className="text-sm font-medium text-gray-700">Features</label>
+                                  <button
+                                    type="button"
+                                    onClick={() => addFeature(productIndex)}
+                                    className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg text-xs transition-all shadow-sm hover:shadow flex items-center gap-1"
+                                  >
+                                    <Plus size={14} />
+                                    Add Feature
+                                  </button>
+                                </div>
+                                <div className="space-y-2">
+                                  {product.features.map((feature, featureIndex) => (
+                                    <div key={featureIndex} className="flex gap-2">
+                                      <div className="flex items-center justify-center w-6 h-9 text-gray-400 text-xs font-medium">
+                                        {featureIndex + 1}.
+                                      </div>
+                                      <input
+                                        type="text"
+                                        placeholder="Enter feature"
+                                        value={feature}
+                                        onChange={(e) => handleFeatureChange(productIndex, featureIndex, e.target.value)}
+                                        className="flex-1 bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+                                        required
+                                      />
+                                      {product.features.length > 1 && (
+                                        <button
+                                          type="button"
+                                          onClick={() => removeFeature(productIndex, featureIndex)}
+                                          className="text-red-600 hover:bg-red-50 rounded-lg p-2 transition-colors"
+                                        >
+                                          <Trash2 size={16} />
+                                        </button>
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+                          )}
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
 
                   {/* AI Generation */}

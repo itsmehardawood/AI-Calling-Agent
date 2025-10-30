@@ -217,7 +217,7 @@ export default function DashboardContent() {
                 }`}
               >
                 <FileText size={18} />
-                Prompts
+                Businesses
               </button>
               <button
                 onClick={() => setActiveTab("agents")}
