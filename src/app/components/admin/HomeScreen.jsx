@@ -216,9 +216,10 @@ export default function DashboardContent() {
                     : "text-gray-600 hover:text-gray-900"
                 }`}
               >
+              
                 <FileText size={18} />
-                Businesses
-              </button>
+                Businesses 
+              </button> 
               <button
                 onClick={() => setActiveTab("agents")}
                 className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${

@@ -1,16 +1,18 @@
 // components/admin/Sidebar.jsx
 'use client';
 
-import {Building2Icon, FileTextIcon, Home, MenuIcon, Settings, User2Icon, UserIcon, Users, X } from 'lucide-react';
+import {Building2Icon, FileTextIcon, Home, MenuIcon, Settings, User2Icon, UserIcon, Users, X, BarChart3, BookDashed, BookDashedIcon } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 import { useState } from 'react';
 
 const navigation = [
-  { name: 'Dashboard', href: '/dashboard', icon: Home },
+  { name: 'Overview', href: '/overview', icon: Home },
+  { name: 'Dashboard', href: '/dashboard', icon: BookDashedIcon },
 //   { name: 'Businesses', href: '/businesses', icon: Building2Icon },
   { name: 'Business', href: '/prompts', icon: FileTextIcon },
+  
   // { name: 'Agents', href: '/users', icon: UserIcon },
   { name: 'Leads', href: '/Leads', icon: Users },
   { name: 'Settings', href: '/settings', icon: Settings },
