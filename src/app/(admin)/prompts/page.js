@@ -4,78 +4,94 @@ import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Plus, Edit, Trash2, Power, Sparkles, Save, ArrowLeft, Check, MoreVertical, Filter, Eye, X } from "lucide-react";
 import {
-  generatePrompt,
-  createPrompt,
-  getPrompts,
-  updatePrompt,
-  deletePrompt,
-  activatePrompt,
-} from "../../lib/promptApi";
+  generateProductPrompt,
+  createProduct,
+  getProducts,
+  updateProduct,
+  deleteProduct,
+  updateProductStatus,
+} from "../../lib/productApi";
 import AdminLayout from "@/app/components/admin/AdminLayout";
 
 
 function PromptsManagementPageInner() {
-  const [prompts, setPrompts] = useState([]);
+  const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false);
-  const [editingPrompt, setEditingPrompt] = useState(null);
-  const [generatedText, setGeneratedText] = useState("");
+  const [editingProduct, setEditingProduct] = useState(null);
+  const [generatedPrompt, setGeneratedPrompt] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [selectionMode, setSelectionMode] = useState(false);
-  const [selectedPromptForDashboard, setSelectedPromptForDashboard] = useState(null);
-  const [expandedProductIndex, setExpandedProductIndex] = useState(0); // Track which product is expanded
+  const [selectedProductForDashboard, setSelectedProductForDashboard] = useState(null);
 
   const router = useRouter();
   const searchParams = useSearchParams();
 
   // Form state
   const [formData, setFormData] = useState({
-    tone: "professional",
-    business: "",
-    prompt_type: "sales",
-    products: [{ name: "", category: "", description: "", price: "", features: [""] }],
-    generated_prompt: "",
+    businessId: "",
+    name: "",
+    description: "",
+    category: "",
+    price: 0,
+    objectives: [""],
+    status: "active",
+    prompt: "",
+    promptType: "sales",
   });
 
 
-  // Fetch prompts on component mount and check for selection mode
+  // Fetch products on component mount and check for selection mode
   useEffect(() => {
-    fetchPrompts();
+    fetchProducts();
     if (!searchParams) return;
     // Check if we're in selection mode
     const mode = searchParams.get('mode');
     if (mode === 'select') {
       setSelectionMode(true);
     }
-    // Check if there's a currently selected prompt from localStorage (client only)
+    // Check if there's a currently selected product from localStorage (client only)
     if (typeof window !== 'undefined') {
-      const currentPromptId = localStorage.getItem('selectedPromptId');
-      if (currentPromptId && mode === 'select') {
-        // Will be set when prompts are loaded
+      const currentProductId = localStorage.getItem('selectedProductId');
+      if (currentProductId && mode === 'select') {
+        // Will be set when products are loaded
       }
     }
   }, [searchParams]);
 
-  // Set selected prompt when prompts are loaded in selection mode
+  // Set selected product when products are loaded in selection mode
   useEffect(() => {
-    if (selectionMode && prompts.length > 0 && typeof window !== 'undefined') {
-      const currentPromptId = localStorage.getItem('selectedPromptId');
-      if (currentPromptId) {
-        const prompt = prompts.find(p => p.id === currentPromptId);
-        if (prompt) {
-          setSelectedPromptForDashboard(prompt);
+    if (selectionMode && products.length > 0 && typeof window !== 'undefined') {
+      const currentProductId = localStorage.getItem('selectedProductId');
+      if (currentProductId) {
+        const product = products.find(p => p.id === currentProductId);
+        if (product) {
+          setSelectedProductForDashboard(product);
         }
       }
     }
-  }, [prompts, selectionMode]);
+  }, [products, selectionMode]);
 
-  const fetchPrompts = async () => {
+  const fetchProducts = async () => {
     setLoading(true);
     try {
-      const response = await getPrompts({ is_active: true });
-      setPrompts(response.prompts || []);
+      // Get user_id from localStorage
+      const userId = typeof window !== 'undefined' ? localStorage.getItem('user_id') : null;
+      if (!userId) {
+        throw new Error('User ID not found. Please login again.');
+      }
+      
+      console.log('Fetching products for userId:', userId);
+      const response = await getProducts(userId);
+      console.log('Fetched products response:', response);
+      
+      // The API returns { businessId: "...", products: [...] }
+      const productsArray = response.products || [];
+      console.log('Products array:', productsArray);
+      setProducts(productsArray);
     } catch (error) {
-      console.error("Error fetching prompts:", error);
+      console.error("Error fetching products:", error);
+      alert("Error fetching products: " + error.message);
     } finally {
       setLoading(false);
     }
@@ -86,61 +102,46 @@ function PromptsManagementPageInner() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleProductChange = (index, field, value) => {
-    const newProducts = [...formData.products];
-    newProducts[index] = { ...newProducts[index], [field]: value };
-    setFormData((prev) => ({ ...prev, products: newProducts }));
+  const handleObjectiveChange = (index, value) => {
+    const newObjectives = [...formData.objectives];
+    newObjectives[index] = value;
+    setFormData((prev) => ({ ...prev, objectives: newObjectives }));
   };
 
-  const handleFeatureChange = (productIndex, featureIndex, value) => {
-    const newProducts = [...formData.products];
-    newProducts[productIndex].features[featureIndex] = value;
-    setFormData((prev) => ({ ...prev, products: newProducts }));
-  };
-
-  const addProduct = () => {
-    const newIndex = formData.products.length;
+  const addObjective = () => {
     setFormData((prev) => ({
       ...prev,
-      products: [...prev.products, { name: "", category: "", description: "", price: "", features: [""] }],
+      objectives: [...prev.objectives, ""],
     }));
-    setExpandedProductIndex(newIndex); // Expand the newly added product
   };
 
-  const removeProduct = (index) => {
+  const removeObjective = (index) => {
     setFormData((prev) => ({
       ...prev,
-      products: prev.products.filter((_, i) => i !== index),
+      objectives: prev.objectives.filter((_, i) => i !== index),
     }));
-    // Adjust expanded index if needed
-    if (expandedProductIndex >= index && expandedProductIndex > 0) {
-      setExpandedProductIndex(expandedProductIndex - 1);
-    }
-  };
-
-  const addFeature = (productIndex) => {
-    const newProducts = [...formData.products];
-    newProducts[productIndex].features.push("");
-    setFormData((prev) => ({ ...prev, products: newProducts }));
-  };
-
-  const removeFeature = (productIndex, featureIndex) => {
-    const newProducts = [...formData.products];
-    newProducts[productIndex].features = newProducts[productIndex].features.filter((_, i) => i !== featureIndex);
-    setFormData((prev) => ({ ...prev, products: newProducts }));
   };
 
   const handleGeneratePrompt = async () => {
+    // Validate required fields
+    if (!formData.name || !formData.category || !formData.description) {
+      alert("Please fill in product name, category, and description before generating prompt.");
+      return;
+    }
+
     setIsGenerating(true);
     try {
-      const response = await generatePrompt({
-        tone: formData.tone,
-        business: formData.business,
-        products: formData.products,
-        prompt_type: formData.prompt_type,
+      const response = await generateProductPrompt({
+        name: formData.name,
+        category: formData.category,
+        description: formData.description,
+        price: formData.price,
+        objective: formData.objectives.filter(obj => obj.trim() !== "").join(", "),
+        promptType: formData.promptType,
       });
-      setGeneratedText(response.generated_prompt);
-      setFormData((prev) => ({ ...prev, generated_prompt: response.generated_prompt }));
+      
+      setGeneratedPrompt(response.prompt);
+      setFormData((prev) => ({ ...prev, prompt: response.prompt }));
     } catch (error) {
       alert("Error generating prompt: " + error.message);
     } finally {
@@ -153,63 +154,97 @@ function PromptsManagementPageInner() {
     setLoading(true);
 
     try {
-      if (editingPrompt) {
-        await updatePrompt(editingPrompt.id, formData);
-      } else {
-        await createPrompt(formData);
+      // Get user_id from localStorage
+      const userId = typeof window !== 'undefined' ? localStorage.getItem('user_id') : null;
+      if (!userId) {
+        throw new Error('User ID not found. Please login again.');
       }
-      await fetchPrompts();
+
+      const productData = {
+        businessId: userId, // Using user_id as businessId
+        name: formData.name,
+        description: formData.description,
+        category: formData.category,
+        price: parseFloat(formData.price) || 0,
+        objectives: formData.objectives.filter(obj => obj.trim() !== ""),
+        status: formData.status,
+        prompt: formData.prompt,
+      };
+
+      if (editingProduct) {
+        await updateProduct(editingProduct.id, productData);
+      } else {
+        await createProduct(productData);
+      }
+      await fetchProducts();
       resetForm();
     } catch (error) {
-      alert("Error saving prompt: " + error.message);
+      alert("Error saving product: " + error.message);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleEdit = (prompt) => {
-    setEditingPrompt(prompt);
+  const handleEdit = (product) => {
+    setEditingProduct(product);
     setFormData({
-      tone: prompt.tone,
-      business: prompt.business_name,
-      prompt_type: prompt.prompt_type,
-      products: prompt.products,
-      generated_prompt: prompt.generated_prompt,
+      businessId: product.businessId,
+      name: product.name,
+      description: product.description,
+      category: product.category,
+      price: product.price,
+      objectives: product.objectives || [""],
+      status: product.status,
+      prompt: product.prompt,
+      promptType: product.promptType || "sales",
     });
-    setGeneratedText(prompt.generated_prompt);
+    setGeneratedPrompt(product.prompt);
     setShowCreateForm(true);
   };
 
-  const handleDelete = async (promptId) => {
-    if (confirm("Are you sure you want to delete this prompt?")) {
+  const handleDelete = async (productId) => {
+    if (confirm("Are you sure you want to delete this product?")) {
       try {
-        await deletePrompt(promptId);
-        await fetchPrompts();
+        await deleteProduct(productId);
+        await fetchProducts();
       } catch (error) {
-        alert("Error deleting prompt: " + error.message);
+        alert("Error deleting product: " + error.message);
       }
+    }
+  };
+
+  const handleToggleStatus = async (productId, currentStatus) => {
+    const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
+    try {
+      await updateProductStatus(productId, newStatus);
+      await fetchProducts();
+    } catch (error) {
+      alert("Error updating product status: " + error.message);
     }
   };
 
   const resetForm = () => {
     setFormData({
-      tone: "professional",
-      business: "",
-      prompt_type: "sales",
-      products: [{ name: "", category: "", description: "", price: "", features: [""] }],
-      generated_prompt: "",
+      businessId: "",
+      name: "",
+      description: "",
+      category: "",
+      price: 0,
+      objectives: [""],
+      status: "active",
+      prompt: "",
+      promptType: "sales",
     });
-    setGeneratedText("");
-    setEditingPrompt(null);
+    setGeneratedPrompt("");
+    setEditingProduct(null);
     setShowCreateForm(false);
-    setExpandedProductIndex(0); // Reset to first product
   };
 
-  const handlePromptSelection = (prompt) => {
-    setSelectedPromptForDashboard(prompt);
+  const handlePromptSelection = (product) => {
+    setSelectedProductForDashboard(product);
     if (typeof window !== 'undefined') {
-      localStorage.setItem('selectedPromptId', prompt.id);
-      localStorage.setItem('callAgentPrompt', prompt.generated_prompt);
+      localStorage.setItem('selectedProductId', product.id);
+      localStorage.setItem('callAgentPrompt', product.prompt);
     }
   };
 
@@ -221,22 +256,20 @@ function PromptsManagementPageInner() {
     router.push('/dashboard');
   };
 
-  const getTypeColor = (type) => {
+  const getStatusColor = (status) => {
     const colors = {
-      sales: 'bg-green-100 text-green-800',
-      support: 'bg-blue-100 text-blue-800',
+      active: 'bg-green-100 text-green-800',
+      inactive: 'bg-gray-100 text-gray-800',
     };
-    return colors[type] || colors.sales;
+    return colors[status] || colors.active;
   };
 
-  const getToneColor = (tone) => {
+  const getTypeColor = (type) => {
     const colors = {
-      professional: 'bg-blue-100 text-blue-800',
-      friendly: 'bg-yellow-100 text-yellow-800',
-      casual: 'bg-pink-100 text-pink-800',
-      formal: 'bg-indigo-100 text-indigo-800',
+      sales: 'bg-blue-100 text-blue-800',
+      marketing: 'bg-purple-100 text-purple-800',
     };
-    return colors[tone] || colors.professional;
+    return colors[type] || colors.sales;
   };
 
   return (
@@ -255,12 +288,12 @@ function PromptsManagementPageInner() {
               </button> */}
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">
-                  {selectionMode ? "Select Business" : "Business Management"}
+                  {selectionMode ? "Select Product" : "Product Management"}
                 </h1>
                 <p className="text-gray-600 mt-1">
                   {selectionMode 
-                    ? "Choose a prompt for your call agent"
-                    : "Create and manage AI prompts for your calling agents"
+                    ? "Choose a product for your call agent"
+                    : "Create and manage products with AI-generated prompts"
                   }
                 </p>
               </div>
@@ -268,15 +301,15 @@ function PromptsManagementPageInner() {
           </div>
 
           {/* Selection Banner */}
-          {selectionMode && selectedPromptForDashboard && (
+          {selectionMode && selectedProductForDashboard && (
             <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="bg-green-500 rounded-full p-2">
                   <Check size={16} className="text-white" />
                 </div>
                 <div>
-                  <p className="text-green-900 font-medium">Selected: {selectedPromptForDashboard.business_name}</p>
-                  <p className="text-green-700 text-sm">Click "Use Selected Prompt" to continue</p>
+                  <p className="text-green-900 font-medium">Selected: {selectedProductForDashboard.name}</p>
+                  <p className="text-green-700 text-sm">Click "Use Selected Product" to continue</p>
                 </div>
               </div>
               <button
@@ -284,7 +317,7 @@ function PromptsManagementPageInner() {
                 className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-sm transition-colors"
               >
                 <Check size={18} />
-                Use Selected Prompt
+                Use Selected Product
               </button>
             </div>
           )}
@@ -294,10 +327,10 @@ function PromptsManagementPageInner() {
             <div className="bg-slate-700 flex items-center justify-between border-b border-gray-200 px-6 py-4">
               <div>
                 <h2 className="text-lg font-semibold text-gray-100">
-                  {selectionMode ? "Available Businesses" : "All Businesses"}
+                  {selectionMode ? "Available Products" : "All Products"}
                 </h2>
                 <p className="text-sm text-gray-100 mt-1">
-                  {prompts.length} Business{prompts.length !== 1 ? 's' : ''} total
+                  {products.length} Product{products.length !== 1 ? 's' : ''} total
                 </p>
               </div>
               
@@ -307,72 +340,85 @@ function PromptsManagementPageInner() {
                   className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                 >
                   <Plus size={18} />
-                  Create New Business
+                  Create New Product
                 </button>
               )}
             </div>
 
             {loading ? (
-              <div className="text-center py-12">
+              <div className="text-center py-16 bg-white">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-                <p className="text-gray-500 mt-4">Loading prompts...</p>
+                <p className="text-gray-500 mt-4 font-medium">Loading products...</p>
               </div>
-            ) : prompts.length === 0 ? (
-              <div className="text-center py-12">
-                <p className="text-gray-500 mb-4">
-                  {selectionMode ? "No prompts available to select." : "No prompts found. Create your first prompt!"}
+            ) : products.length === 0 ? (
+              <div className="text-center py-16 bg-white">
+                <div className="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                  <Plus size={32} className="text-gray-400" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  {selectionMode ? "No products available" : "No products yet"}
+                </h3>
+                <p className="text-gray-500 mb-6 max-w-sm mx-auto">
+                  {selectionMode 
+                    ? "There are no products available to select. Please create a product first."
+                    : "Get started by creating your first product with AI-generated prompts."
+                  }
                 </p>
                 {!selectionMode && (
                   <button
                     onClick={() => setShowCreateForm(true)}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg"
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium inline-flex items-center gap-2 transition-colors shadow-sm"
                   >
-                    Create Your First Prompt
+                    <Plus size={18} />
+                    Create Your First Product
                   </button>
                 )}
               </div>
             ) : (
               <div className="overflow-x-auto">
-                <table className="w-full">
+                <table className="w-full table-fixed">
                   <thead className="bg-gray-50 border-b border-gray-200">
                     <tr>
                       {selectionMode && (
-                        <th className="py-3 px-6 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider w-12">
+                        <th className="py-3 px-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider w-16">
                           Select
                         </th>
                       )}
-                      <th className="py-3 px-6 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                        Business Name
+                      <th className="py-3 px-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider w-[18%]">
+                        Product Name
                       </th>
-                      <th className="py-3 px-6 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                        Type
+                      <th className="py-3 px-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider w-[10%]">
+                        Category
                       </th>
-                      <th className="py-3 px-6 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                        Tone
+                      <th className="py-3 px-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider w-[8%]">
+                        Price
                       </th>
-                      <th className="py-3 px-6 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                        Products
+                      <th className="py-3 px-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider w-[11%]">
+                        Objectives
                       </th>
-                      <th className="py-3 px-6 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                        Generated Prompt
+                      <th className="py-3 px-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider w-[8%]">
+                        Status
                       </th>
-                      <th className="py-3 px-6 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      <th className="py-3 px-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider w-[16%]">
+                        Prompt
+                      </th>
+                      <th className="py-3 px-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider w-[8%]">
                         Created
                       </th>
                       {!selectionMode && (
-                        <th className="py-3 px-6 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                        <th className="py-3 px-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider w-[13%]">
                           Actions
                         </th>
                       )}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200 bg-white">
-                    {prompts.map((prompt) => {
-                      const isSelected = selectionMode && selectedPromptForDashboard?.id === prompt.id;
+                    {products.map((product) => {
+                      const isSelected = selectionMode && selectedProductForDashboard?.id === product.id;
                       return (
                         <tr 
-                          key={prompt.id}
-                          onClick={() => selectionMode ? handlePromptSelection(prompt) : null}
+                          key={product.id}
+                          onClick={() => selectionMode ? handlePromptSelection(product) : null}
                           className={`transition-colors ${
                             isSelected
                               ? "bg-green-50 border-l-4 border-l-green-500"
@@ -382,7 +428,7 @@ function PromptsManagementPageInner() {
                           }`}
                         >
                           {selectionMode && (
-                            <td className="py-4 px-6">
+                            <td className="py-4 px-4">
                               <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
                                 isSelected 
                                   ? "bg-green-500 border-green-500" 
@@ -392,48 +438,108 @@ function PromptsManagementPageInner() {
                               </div>
                             </td>
                           )}
-                          <td className="py-4 px-6">
-                            <div className="font-medium text-gray-900">{prompt.business_name}</div>
-                          </td>
-                          <td className="py-4 px-6">
-                            <span className={`px-3 py-1 rounded-full text-xs font-medium ${getTypeColor(prompt.prompt_type)}`}>
-                              {prompt.prompt_type}
-                            </span>
-                          </td>
-                          <td className="py-4 px-6">
-                            <span className={`px-3 py-1 rounded-full text-xs font-medium ${getToneColor(prompt.tone)}`}>
-                              {prompt.tone}
-                            </span>
-                          </td>
-                          <td className="py-4 px-6">
-                            <span className="text-gray-700">{prompt.products?.length || 0}</span>
-                          </td>
-                          <td className="py-4 px-6">
-                            <div className="text-sm text-gray-600 max-w-xs truncate">
-                              {prompt.generated_prompt.substring(0, 60)}...
+                          <td className="py-4 px-4">
+                            <div className="font-medium text-gray-900 truncate" title={product.name}>
+                              {product.name}
+                            </div>
+                            <div className="text-xs text-gray-500 mt-1 truncate" title={product.description}>
+                              {product.description || 'No description'}
                             </div>
                           </td>
-                          <td className="py-4 px-6">
-                            <span className="text-sm text-gray-600">
-                              {new Date(prompt.created_at).toLocaleDateString()}
+                          <td className="py-4 px-4">
+                            <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800 truncate max-w-full" title={product.category}>
+                              {product.category}
+                            </span>
+                          </td>
+                          <td className="py-4 px-4">
+                            <span className="text-gray-900 font-semibold">${product.price}</span>
+                          </td>
+                          <td className="py-4 px-4">
+                            {product.objectives && product.objectives.length > 0 ? (
+                              <div className="flex flex-col gap-1">
+                                <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-purple-100 text-purple-800 w-fit">
+                                  {product.objectives.length} objective{product.objectives.length !== 1 ? 's' : ''}
+                                </span>
+                                <div className="text-xs text-gray-500 truncate" title={product.objectives.join(', ')}>
+                                  {product.objectives[0]}
+                                  {product.objectives.length > 1 && ` +${product.objectives.length - 1} more`}
+                                </div>
+                              </div>
+                            ) : (
+                              <span className="text-gray-400 text-xs">No objectives</span>
+                            )}
+                          </td>
+                          <td className="py-4 px-4">
+                            <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${getStatusColor(product.status)}`}>
+                              {product.status}
+                            </span>
+                          </td>
+                          <td className="py-4 px-4">
+                            {product.prompt ? (
+                              <div 
+                                className="text-xs text-gray-600 line-clamp-2 leading-relaxed cursor-help" 
+                                title={product.prompt}
+                              >
+                                {product.prompt}
+                              </div>
+                            ) : (
+                              <span className="text-xs text-red-400 italic">No prompt generated</span>
+                            )}
+                          </td>
+                          <td className="py-4 px-4">
+                            <span className="text-xs text-gray-600 whitespace-nowrap">
+                              {product.created_at ? new Date(product.created_at).toLocaleDateString('en-US', { 
+                                month: 'short', 
+                                day: 'numeric',
+                                year: 'numeric'
+                              }) : 'N/A'}
                             </span>
                           </td>
                           {!selectionMode && (
-                            <td className="py-4 px-6">
+                            <td className="py-4 px-4">
                               <div className="flex items-center justify-center gap-2">
+                                {/* Toggle Status Button */}
                                 <button
-                                  onClick={() => handleEdit(prompt)}
-                                  className="text-blue-600 hover:text-blue-800 p-1 transition-colors"
-                                  title="Edit"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleToggleStatus(product.id, product.status);
+                                  }}
+                                  className={`relative inline-flex items-center h-7 w-12 rounded-full transition-colors flex-shrink-0 ${
+                                    product.status === 'active' 
+                                      ? 'bg-green-500 hover:bg-green-600' 
+                                      : 'bg-gray-300 hover:bg-gray-400'
+                                  }`}
+                                  title={product.status === 'active' ? 'Active - Click to deactivate' : 'Inactive - Click to activate'}
                                 >
-                                  <Edit size={16} />
+                                  <span
+                                    className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform shadow-sm ${
+                                      product.status === 'active' ? 'translate-x-6' : 'translate-x-1'
+                                    }`}
+                                  />
                                 </button>
+                                
+                                {/* Edit Button */}
                                 <button
-                                  onClick={() => handleDelete(prompt.id)}
-                                  className="text-red-600 hover:text-red-800 p-1 transition-colors"
-                                  title="Delete"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleEdit(product);
+                                  }}
+                                  className="text-blue-600 hover:bg-blue-50 rounded-lg p-2.5 transition-colors flex-shrink-0"
+                                  title="Edit Product"
                                 >
-                                  <Trash2 size={16} />
+                                  <Edit size={17} />
+                                </button>
+                                
+                                {/* Delete Button */}
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDelete(product.id);
+                                  }}
+                                  className="text-red-600 hover:bg-red-50 rounded-lg p-2.5 transition-colors flex-shrink-0"
+                                  title="Delete Product"
+                                >
+                                  <Trash2 size={17} />
                                 </button>
                               </div>
                             </td>
@@ -447,17 +553,17 @@ function PromptsManagementPageInner() {
             )}
 
             {/* Pagination */}
-            {prompts.length > 0 && (
-              <div className="flex items-center justify-between border-t border-gray-600 px-6 py-4">
+            {products.length > 0 && (
+              <div className="flex items-center justify-between border-t border-gray-200 bg-gray-50 px-6 py-4">
                 <div className="text-sm text-gray-600">
-                  Showing {prompts.length} results
+                  Showing <span className="font-medium text-gray-900">{products.length}</span> product{products.length !== 1 ? 's' : ''}
                 </div>
                 <div className="flex items-center gap-2">
-                  <button className="px-3 py-1 border border-gray-200 rounded text-gray-600 hover:bg-gray-50">
+                  <button className="px-3 py-1.5 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed" disabled>
                     Previous
                   </button>
-                  <button className="px-3 py-1 bg-blue-600 text-white rounded">1</button>
-                  <button className="px-3 py-1 border border-gray-200 rounded text-gray-600 hover:bg-gray-50">
+                  <button className="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-sm font-medium">1</button>
+                  <button className="px-3 py-1.5 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed" disabled>
                     Next
                   </button>
                 </div>
@@ -473,11 +579,11 @@ function PromptsManagementPageInner() {
                   <Check size={16} className="text-white" />
                 </div>
                 <div>
-                  <h3 className="text-blue-900 font-medium mb-2">How to select a prompt:</h3>
+                  <h3 className="text-blue-900 font-medium mb-2">How to select a product:</h3>
                   <ul className="text-blue-800 text-sm space-y-1">
                     <li>• Click on any row in the table to select it</li>
-                    <li>• The selected prompt will be highlighted in green</li>
-                    <li>• Click "Use Selected Prompt" button to return to the dashboard</li>
+                    <li>• The selected product will be highlighted in green</li>
+                    <li>• Click "Use Selected Product" button to return to the dashboard</li>
                     <li>• Your selection will be saved for the call setup</li>
                   </ul>
                 </div>
@@ -489,15 +595,15 @@ function PromptsManagementPageInner() {
         {/* Create/Edit Form Modal */}
         {showCreateForm && (
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-xl max-w-5xl w-full max-h-[90vh] overflow-hidden shadow-2xl animate-fadeIn">
+            <div className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-hidden shadow-2xl animate-fadeIn">
               {/* Modal Header */}
               <div className="bg-gradient-to-r from-slate-900 to-slate-800 px-6 py-5 flex items-center justify-between sticky top-0 z-10">
                 <div>
                   <h2 className="text-2xl font-bold text-white">
-                    {editingPrompt ? "Edit Business" : "Create New Business"}
+                    {editingProduct ? "Edit Product" : "Create New Product"}
                   </h2>
                   <p className="text-blue-100 text-sm mt-1">
-                    {editingPrompt ? "Update your business information" : "Add a new business to your collection"}
+                    {editingProduct ? "Update your product information" : "Add a new product to your collection"}
                   </p>
                 </div>
                 <button
@@ -517,261 +623,168 @@ function PromptsManagementPageInner() {
                   <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-5 border border-gray-200">
                     <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
                       <div className="w-1 h-6 bg-blue-600 rounded-full"></div>
-                      Basic Information
+                      Product Information
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-sm font-medium mb-2 text-gray-700">
-                          Business Name <span className="text-red-500">*</span>
+                          Product Name <span className="text-red-500">*</span>
                         </label>
                         <input
                           type="text"
-                          name="business"
-                          value={formData.business}
+                          name="name"
+                          value={formData.name}
                           onChange={handleInputChange}
                           className="w-full bg-white border border-gray-300 rounded-lg px-4 py-2.5 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
-                          placeholder="Enter business name"
+                          placeholder="Enter product name"
                           required
                         />
                       </div>
                       <div>
                         <label className="block text-sm font-medium mb-2 text-gray-700">
-                          Tone <span className="text-red-500">*</span>
+                          Category <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          name="category"
+                          value={formData.category}
+                          onChange={handleInputChange}
+                          className="w-full bg-white border border-gray-300 rounded-lg px-4 py-2.5 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+                          placeholder="e.g., Electronics, Software"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                      <div>
+                        <label className="block text-sm font-medium mb-2 text-gray-700">
+                          Price <span className="text-blue-600">(optional)</span>
+                        </label>
+                        <input
+                          type="number"
+                          name="price"
+                          value={formData.price}
+                          onChange={handleInputChange}
+                          className="w-full bg-white border border-gray-300 rounded-lg px-4 py-2.5 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+                          placeholder="0.00"
+                          step="0.01"
+                          min="0"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2 text-gray-700">
+                          Prompt Type <span className="text-red-500">*</span>
                         </label>
                         <select
-                          name="tone"
-                          value={formData.tone}
+                          name="promptType"
+                          value={formData.promptType}
                           onChange={handleInputChange}
                           className="w-full bg-white border border-gray-300 rounded-lg px-4 py-2.5 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
                         >
-                          <option value="professional">Professional</option>
-                          <option value="friendly">Friendly</option>
-                          <option value="casual">Casual</option>
-                          <option value="formal">Formal</option>
+                          <option value="sales">Sales</option>
+                          <option value="marketing">Marketing</option>
                         </select>
                       </div>
                     </div>
 
                     <div className="mt-4">
                       <label className="block text-sm font-medium mb-2 text-gray-700">
-                        Prompt Type <span className="text-red-500">*</span>
+                        Description <span className="text-red-500">*</span>
                       </label>
-                      <select
-                        name="prompt_type"
-                        value={formData.prompt_type}
+                      <textarea
+                        name="description"
+                        value={formData.description}
                         onChange={handleInputChange}
-                        className="w-full bg-white border border-gray-300 rounded-lg px-4 py-2.5 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
-                      >
-                        <option value="sales">Sales</option>
-                        <option value="support">Support</option>
-                      </select>
+                        className="w-full bg-white border border-gray-300 rounded-lg px-4 py-2.5 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all resize-none"
+                        placeholder="Brief description of the product"
+                        rows="3"
+                        required
+                      />
                     </div>
                   </div>
 
-                  {/* Products */}
+                  {/* Objectives Section */}
                   <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-5 border border-green-200">
                     <div className="flex justify-between items-center mb-4">
                       <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
                         <div className="w-1 h-6 bg-green-600 rounded-full"></div>
-                        Products
+                        Objectives
                         <span className="text-sm font-normal text-gray-600">
-                          ({formData.products.length})
+                          ({formData.objectives.length})
                         </span>
                       </h3>
                       <button
                         type="button"
-                        onClick={addProduct}
+                        onClick={addObjective}
                         className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm transition-all shadow-sm hover:shadow-md flex items-center gap-2"
                       >
                         <Plus size={16} />
-                        Add Product
+                        Add Objective
                       </button>
                     </div>
 
-                    {formData.products.map((product, productIndex) => {
-                      const isExpanded = expandedProductIndex === productIndex;
-                      
-                      return (
-                        <div key={productIndex} className="border border-gray-300 bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-                          {/* Product Header - Always Visible */}
-                          <div 
-                            className="flex justify-between items-center p-4 cursor-pointer hover:bg-gray-50 transition-colors"
-                            onClick={() => setExpandedProductIndex(isExpanded ? -1 : productIndex)}
-                          >
-                            <div className="flex items-center gap-3 flex-1">
-                              <div className={`transform transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`}>
-                                <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                                </svg>
-                              </div>
-                              <div className="flex items-center gap-3 flex-1">
-                                <div className="w-8 h-8 bg-gradient-to-br from-slate-900 to-slate-700 rounded-lg flex items-center justify-center text-white font-bold text-sm">
-                                  {productIndex + 1}
-                                </div>
-                                <div>
-                                  <h4 className="font-semibold text-gray-900">
-                                    {product.name || `Product ${productIndex + 1}`}
-                                  </h4>
-                                  {product.category && (
-                                    <span className="text-xs text-gray-500">
-                                      {product.category}
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
-                              {product.name && product.category && (
-                                <span className="text-xs bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-medium">
-                                  {product.price || 'No price'}
-                                </span>
-                              )}
-                            </div>
-                            <div className="flex items-center gap-2 ml-2">
-                              {formData.products.length > 1 && (
-                                <button
-                                  type="button"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    removeProduct(productIndex);
-                                  }}
-                                  className="text-red-600 hover:bg-red-50 rounded-lg p-2 transition-colors"
-                                  title="Delete product"
-                                >
-                                  <Trash2 size={18} />
-                                </button>
-                              )}
-                            </div>
+                    <div className="space-y-3">
+                      {formData.objectives.map((objective, index) => (
+                        <div key={index} className="flex gap-2">
+                          <div className="flex items-center justify-center w-8 h-10 text-gray-400 text-sm font-medium">
+                            {index + 1}.
                           </div>
-
-                          {/* Product Details - Collapsible */}
-                          {isExpanded && (
-                            <div className="p-4 pt-0 space-y-4 bg-gray-50 border-t border-gray-200">
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                <div>
-                                  <label className="block text-xs font-medium mb-1.5 text-gray-700">
-                                    Product Name <span className="text-red-500">*</span>
-                                  </label>
-                                  <input
-                                    type="text"
-                                    placeholder="e.g., Premium Widget"
-                                    value={product.name}
-                                    onChange={(e) => handleProductChange(productIndex, "name", e.target.value)}
-                                    className="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
-                                    required
-                                  />
-                                </div>
-                                <div>
-                                  <label className="block text-xs font-medium mb-1.5 text-gray-700">
-                                    Category <span className="text-red-500">*</span>
-                                  </label>
-                                  <input
-                                    type="text"
-                                    placeholder="e.g., Electronics"
-                                    value={product.category}
-                                    onChange={(e) => handleProductChange(productIndex, "category", e.target.value)}
-                                    className="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
-                                    required
-                                  />
-                                </div>
-                              </div>
-
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                <div>
-                                  <label className="block text-xs font-medium mb-1.5 text-gray-700">
-                                    Price <span className="text-red-500">*</span>
-                                  </label>
-                                  <input
-                                    type="text"
-                                    placeholder="e.g., $99.99"
-                                    value={product.price}
-                                    onChange={(e) => handleProductChange(productIndex, "price", e.target.value)}
-                                    className="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
-                                    required
-                                  />
-                                </div>
-                                <div>
-                                  <label className="block text-xs font-medium mb-1.5 text-gray-700">
-                                    Description <span className="text-red-500">*</span>
-                                  </label>
-                                  <textarea
-                                    placeholder="Brief description of the product"
-                                    value={product.description}
-                                    onChange={(e) => handleProductChange(productIndex, "description", e.target.value)}
-                                    className="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all resize-none"
-                                    rows="2"
-                                    required
-                                  />
-                                </div>
-                              </div>
-
-                              {/* Features */}
-                              <div className="bg-white rounded-lg p-3 border border-gray-200">
-                                <div className="flex justify-between items-center mb-3">
-                                  <label className="text-sm font-medium text-gray-700">Features</label>
-                                  <button
-                                    type="button"
-                                    onClick={() => addFeature(productIndex)}
-                                    className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg text-xs transition-all shadow-sm hover:shadow flex items-center gap-1"
-                                  >
-                                    <Plus size={14} />
-                                    Add Feature
-                                  </button>
-                                </div>
-                                <div className="space-y-2">
-                                  {product.features.map((feature, featureIndex) => (
-                                    <div key={featureIndex} className="flex gap-2">
-                                      <div className="flex items-center justify-center w-6 h-9 text-gray-400 text-xs font-medium">
-                                        {featureIndex + 1}.
-                                      </div>
-                                      <input
-                                        type="text"
-                                        placeholder="Enter feature"
-                                        value={feature}
-                                        onChange={(e) => handleFeatureChange(productIndex, featureIndex, e.target.value)}
-                                        className="flex-1 bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
-                                        required
-                                      />
-                                      {product.features.length > 1 && (
-                                        <button
-                                          type="button"
-                                          onClick={() => removeFeature(productIndex, featureIndex)}
-                                          className="text-red-600 hover:bg-red-50 rounded-lg p-2 transition-colors"
-                                        >
-                                          <Trash2 size={16} />
-                                        </button>
-                                      )}
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            </div>
+                          <input
+                            type="text"
+                            placeholder="Enter objective"
+                            value={objective}
+                            onChange={(e) => handleObjectiveChange(index, e.target.value)}
+                            className="flex-1 bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all"
+                            required
+                          />
+                          {formData.objectives.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => removeObjective(index)}
+                              className="text-red-600 hover:bg-red-50 rounded-lg p-2 transition-colors"
+                            >
+                              <Trash2 size={18} />
+                            </button>
                           )}
                         </div>
-                      );
-                    })}
+                      ))}
+                    </div>
                   </div>
 
                   {/* AI Generation */}
-                  <div>
-                    <div className="flex gap-4 mb-4">
+                  <div className="bg-gradient-to-br from-purple-50 to-blue-50 rounded-xl p-5 border border-purple-200">
+                    <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                      <div className="w-1 h-6 bg-purple-600 rounded-full"></div>
+                      AI-Generated Prompt
+                    </h3>
+                    
+                    <div className="mb-4">
                       <button
                         type="button"
                         onClick={handleGeneratePrompt}
-                        disabled={isGenerating || !formData.business}
-                        className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors shadow-sm"
+                        disabled={isGenerating || !formData.name || !formData.category || !formData.description}
+                        className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 disabled:from-gray-400 disabled:to-gray-400 text-white px-6 py-3 rounded-lg flex items-center gap-2 transition-all shadow-md hover:shadow-lg"
                       >
-                        <Sparkles size={16} />
+                        <Sparkles size={18} />
                         {isGenerating ? "Generating..." : "Generate AI Prompt"}
                       </button>
+                      <p className="text-xs text-gray-600 mt-2">
+                        Fill in product details above before generating the prompt
+                      </p>
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium mb-2 text-gray-700">Generated Prompt</label>
+                      <label className="block text-sm font-medium mb-2 text-gray-700">
+                        Generated Prompt <span className="text-red-500">*</span>
+                      </label>
                       <textarea
-                        name="generated_prompt"
-                        value={formData.generated_prompt}
+                        name="prompt"
+                        value={formData.prompt}
                         onChange={handleInputChange}
                         placeholder="Generated prompt will appear here, or you can write your own..."
-                        className="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 h-40 text-gray-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                        className="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 h-40 text-gray-900 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all"
                         required
                       />
                     </div>
@@ -782,15 +795,15 @@ function PromptsManagementPageInner() {
                     <button
                       type="submit"
                       disabled={loading}
-                      className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white px-6 py-2 rounded-lg flex items-center gap-2 transition-colors shadow-sm"
+                      className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white px-6 py-3 rounded-lg flex items-center gap-2 transition-colors shadow-sm font-medium"
                     >
-                      <Save size={16} />
-                      {loading ? "Saving..." : editingPrompt ? "Update" : "Create"}
+                      <Save size={18} />
+                      {loading ? "Saving..." : editingProduct ? "Update Product" : "Create Product"}
                     </button>
                     <button
                       type="button"
                       onClick={resetForm}
-                      className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-6 py-2 rounded-lg transition-colors"
+                      className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-6 py-3 rounded-lg transition-colors font-medium"
                     >
                       Cancel
                     </button>

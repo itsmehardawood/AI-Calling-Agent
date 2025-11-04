@@ -3,17 +3,15 @@
  */
 import { apiFetch } from './api.js.js';
 
-const API_BASE = '/api/prompts';
-
 /**
  * Generate AI prompt using OpenAI
  */
 export async function generatePrompt(promptData) {
   try {
-    const response = await apiFetch(`${API_BASE}/generate`, {
+    const response = await apiFetch('/prompts/generate', {
       method: 'POST',
       body: JSON.stringify(promptData),
-    });
+    }); 
 
     if (!response.ok) {
       const error = await response.json();
@@ -32,7 +30,7 @@ export async function generatePrompt(promptData) {
  */
 export async function createPrompt(promptData) {
   try {
-    const response = await apiFetch(API_BASE, {
+    const response = await apiFetch('/prompts', {
       method: 'POST',
       body: JSON.stringify(promptData),
     });
@@ -62,7 +60,7 @@ export async function getPrompts(filters = {}) {
     if (filters.limit) params.append('limit', filters.limit);
     if (filters.skip) params.append('skip', filters.skip);
 
-    const url = params.toString() ? `${API_BASE}/?${params.toString()}` : API_BASE;
+    const url = params.toString() ? `/prompts?${params.toString()}` : '/prompts';
     const response = await apiFetch(url);
 
     if (!response.ok) {
@@ -82,7 +80,7 @@ export async function getPrompts(filters = {}) {
  */
 export async function getPromptById(promptId) {
   try {
-    const response = await apiFetch(`${API_BASE}/${promptId}`);
+    const response = await apiFetch(`/prompts/${promptId}`);
 
     if (!response.ok) {
       const error = await response.json();
@@ -101,7 +99,7 @@ export async function getPromptById(promptId) {
  */
 export async function updatePrompt(promptId, promptData) {
   try {
-    const response = await apiFetch(`${API_BASE}/${promptId}`, {
+    const response = await apiFetch(`/prompts/${promptId}`, {
       method: 'PUT',
       body: JSON.stringify(promptData),
     });
@@ -123,7 +121,7 @@ export async function updatePrompt(promptId, promptData) {
  */
 export async function deletePrompt(promptId) {
   try {
-    const response = await apiFetch(`${API_BASE}/${promptId}`, {
+    const response = await apiFetch(`/prompts/${promptId}`, {
       method: 'DELETE',
     });
 
@@ -144,7 +142,7 @@ export async function deletePrompt(promptId) {
  */
 export async function activatePrompt(promptId) {
   try {
-    const response = await apiFetch(`${API_BASE}/${promptId}/activate`, {
+    const response = await apiFetch(`/prompts/${promptId}/activate`, {
       method: 'POST',
     });
 
