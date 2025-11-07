@@ -17,6 +17,9 @@ import {
   TrendingUp
 } from "lucide-react";
 import AdminLayout from "@/app/components/admin/AdminLayout";
+import CustomToast from "@/app/components/CustomToast";
+import ConfirmDialog from "@/app/components/ConfirmDialog";
+import { getLeads, deleteLead } from "../../lib/leadsApi";
 
 export default function LeadsPage() {
   const [leads, setLeads] = useState([]);
@@ -24,75 +27,14 @@ export default function LeadsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingLead, setEditingLead] = useState(null);
+  const [toast, setToast] = useState(null);
+  const [confirmDialog, setConfirmDialog] = useState(null);
+  const [pagination, setPagination] = useState(null);
 
-  // Mock data - replace with actual API calls
-  const mockLeads = [
-    {
-      id: 1,
-      name: "Alice Williams",
-      email: "alice.w@techstart.com",
-      phone: "+1 (555) 111-2222",
-      company: "TechStart Solutions",
-      status: "new",
-      source: "Website",
-      interest: "Product Demo",
-      score: 85,
-      lastContact: "2024-01-15",
-      createdAt: "2024-01-15"
-    },
-    {
-      id: 2,
-      name: "Robert Brown",
-      email: "robert.b@digitalco.com",
-      phone: "+1 (555) 333-4444",
-      company: "Digital Co",
-      status: "contacted",
-      source: "Referral",
-      interest: "Pricing Info",
-      score: 72,
-      lastContact: "2024-01-14",
-      createdAt: "2024-01-13"
-    },
-    {
-      id: 3,
-      name: "Jennifer Martinez",
-      email: "jennifer.m@innovators.com",
-      phone: "+1 (555) 555-6666",
-      company: "Innovators Inc",
-      status: "qualified",
-      source: "LinkedIn",
-      interest: "Enterprise Plan",
-      score: 92,
-      lastContact: "2024-01-12",
-      createdAt: "2024-01-10"
-    },
-    {
-      id: 4,
-      name: "David Lee",
-      email: "david.lee@startup.io",
-      phone: "+1 (555) 777-8888",
-      company: "Startup.io",
-      status: "new",
-      source: "Google Ads",
-      interest: "Free Trial",
-      score: 68,
-      lastContact: "2024-01-15",
-      createdAt: "2024-01-15"
-    },
-    {
-      id: 5,
-      name: "Lisa Anderson",
-      email: "lisa.a@biztech.com",
-      phone: "+1 (555) 999-0000",
-      company: "BizTech Solutions",
-      status: "converted",
-      source: "Website",
-      interest: "Full Package",
-      score: 95,
-      lastContact: "2024-01-11",
-      createdAt: "2024-01-05"
-    }
-  ];
+  // Show toast notification
+  const showToast = (message, type = 'success') => {
+    setToast({ message, type });
+  };
 
   useEffect(() => {
     fetchLeads();
@@ -100,63 +42,84 @@ export default function LeadsPage() {
 
   const fetchLeads = async () => {
     setLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      setLeads(mockLeads);
+    try {
+      // Get user_id from localStorage
+      const userId = typeof window !== 'undefined' ? localStorage.getItem('user_id') : null;
+      if (!userId) {
+        throw new Error('User ID not found. Please login again.');
+      }
+
+      console.log('Fetching leads for userId:', userId);
+      const response = await getLeads(userId);
+      console.log('Fetched leads response:', response);
+
+      if (response.status === 'success') {
+        setLeads(response.leads || []);
+        setPagination(response.pagination);
+      }
+    } catch (error) {
+      console.error("Error fetching leads:", error);
+      showToast("Error fetching leads: " + error.message, 'error');
+    } finally {
       setLoading(false);
-    }, 1000);
+    }
   };
 
-  const filteredLeads = leads.filter(lead =>
-    lead.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    lead.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    lead.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    lead.interest.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Transform lead data for display
+  const transformLead = (lead) => {
+    const rawData = lead.raw_data || {};
+    return {
+      id: lead._id,
+      name: rawData.name || 'N/A',
+      email: rawData.email || 'N/A',
+      phone: rawData.phone || 'N/A',
+      company: rawData.company || 'N/A',
+      createdAt: rawData.createdOn || rawData.created_on || 'N/A',
+    };
+  };
+
+  const filteredLeads = leads.filter(lead => {
+    const transformed = transformLead(lead);
+    return (
+      transformed.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      transformed.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      transformed.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      transformed.phone.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  });
 
   const handleAddLead = (leadData) => {
-    const newLead = {
-      id: leads.length + 1,
-      ...leadData,
-      status: "new",
-      score: Math.floor(Math.random() * 40) + 60, // Random score 60-100
-      lastContact: new Date().toISOString().split('T')[0],
-      createdAt: new Date().toISOString().split('T')[0]
-    };
-    setLeads([newLead, ...leads]);
+    // TODO: Implement add lead API call
+    showToast("Add lead functionality coming soon", 'info');
     setShowAddModal(false);
   };
 
   const handleEditLead = (leadData) => {
-    setLeads(leads.map(lead =>
-      lead.id === editingLead.id
-        ? { ...lead, ...leadData }
-        : lead
-    ));
+    // TODO: Implement edit lead API call
+    showToast("Edit lead functionality coming soon", 'info');
     setEditingLead(null);
   };
 
   const handleDeleteLead = (leadId) => {
-    if (window.confirm("Are you sure you want to delete this lead?")) {
-      setLeads(leads.filter(lead => lead.id !== leadId));
-    }
-  };
-
-  const getStatusColor = (status) => {
-    const colors = {
-      new: 'bg-blue-100 text-blue-800',
-      contacted: 'bg-yellow-100 text-yellow-800',
-      qualified: 'bg-purple-100 text-purple-800',
-      converted: 'bg-green-100 text-green-800',
-      lost: 'bg-red-100 text-red-800'
-    };
-    return colors[status] || colors.new;
-  };
-
-  const getScoreColor = (score) => {
-    if (score >= 80) return 'text-green-600';
-    if (score >= 60) return 'text-yellow-600';
-    return 'text-red-600';
+    setConfirmDialog({
+      title: "Delete Lead",
+      message: "Are you sure you want to delete this lead? This action cannot be undone.",
+      confirmText: "Delete",
+      cancelText: "Cancel",
+      type: "danger",
+      onConfirm: async () => {
+        try {
+          await deleteLead(leadId);
+          showToast("Lead deleted successfully!", 'success');
+          await fetchLeads();
+        } catch (error) {
+          showToast("Error deleting lead: " + error.message, 'error');
+        } finally {
+          setConfirmDialog(null);
+        }
+      },
+      onCancel: () => setConfirmDialog(null)
+    });
   };
 
   return (
@@ -173,22 +136,22 @@ export default function LeadsPage() {
             <p className="text-gray-600 mt-1">Track and manage your sales leads</p>
           </div>
         </div>
-        <button
+        {/* <button
           onClick={() => setShowAddModal(true)}
           className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
         >
           <UserPlus size={16} />
           Add Lead
-        </button>
+        </button> */}
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="bg-white rounded-xl border border-gray-200 p-4">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Total Leads</p>
-              <p className="text-2xl font-bold text-gray-900">{leads.length}</p>
+              <p className="text-2xl font-bold text-gray-900">{pagination?.total_leads || leads.length}</p>
             </div>
             <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center">
               <Target className="text-blue-600" size={16} />
@@ -199,9 +162,9 @@ export default function LeadsPage() {
         <div className="bg-white rounded-xl border border-gray-200 p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">New</p>
+              <p className="text-sm font-medium text-gray-600">Current Page</p>
               <p className="text-2xl font-bold text-blue-600">
-                {leads.filter(l => l.status === 'new').length}
+                {pagination?.page || 1} / {pagination?.total_pages || 1}
               </p>
             </div>
             <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center">
@@ -213,41 +176,13 @@ export default function LeadsPage() {
         <div className="bg-white rounded-xl border border-gray-200 p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Qualified</p>
+              <p className="text-sm font-medium text-gray-600">Showing</p>
               <p className="text-2xl font-bold text-purple-600">
-                {leads.filter(l => l.status === 'qualified').length}
+                {leads.length} Leads
               </p>
             </div>
             <div className="w-10 h-10 bg-purple-50 rounded-lg flex items-center justify-center">
               <TrendingUp className="text-purple-600" size={16} />
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl border border-gray-200 p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Converted</p>
-              <p className="text-2xl font-bold text-green-600">
-                {leads.filter(l => l.status === 'converted').length}
-              </p>
-            </div>
-            <div className="w-10 h-10 bg-green-50 rounded-lg flex items-center justify-center">
-              <Target className="text-green-600" size={16} />
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl border border-gray-200 p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Avg Score</p>
-              <p className="text-2xl font-bold text-indigo-600">
-                {leads.length > 0 ? Math.round(leads.reduce((sum, lead) => sum + lead.score, 0) / leads.length) : 0}
-              </p>
-            </div>
-            <div className="w-10 h-10 bg-indigo-50 rounded-lg flex items-center justify-center">
-              <TrendingUp className="text-indigo-600" size={16} />
             </div>
           </div>
         </div>
@@ -260,16 +195,16 @@ export default function LeadsPage() {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
             <input
               type="text"
-              placeholder="Search leads by name, email, company, or interest..."
+              placeholder="Search leads by name, email, company, or phone..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-2 border text-gray-500 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
-          <button className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+          {/* <button className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 flex items-center gap-2">
             <Filter size={16} />
             Filter
-          </button>
+          </button> */}
         </div>
       </div>
 
@@ -285,102 +220,89 @@ export default function LeadsPage() {
             <div className="text-center py-8">
               <Target size={48} className="text-gray-400 mx-auto mb-4" />
               <p className="text-gray-500 mb-4">No leads found</p>
-              <button
+              {/* <button
                 onClick={() => setShowAddModal(true)}
                 className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
               >
                 Add Your First Lead
-              </button>
+              </button> */}
             </div>
           ) : (
             <table className="w-full">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Lead
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  {/* <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Contact
+                  </th> */}
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Email
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Interest
+                    Phone
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Source
+                    Company
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
+                    Created On
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Score
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Last Contact
-                  </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  {/* <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Actions
-                  </th>
+                  </th> */}
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {filteredLeads.map((lead) => (
-                  <tr key={lead.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div>
-                        <div className="text-sm font-medium text-gray-900">{lead.name}</div>
-                        <div className="text-sm text-gray-500 flex items-center gap-1">
-                          <Building size={12} />
-                          {lead.company}
+                {filteredLeads.map((lead) => {
+                  const transformed = transformLead(lead);
+                  return (
+                    <tr key={lead._id} className="hover:bg-gray-50">
+                      {/* <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm font-medium text-gray-900">{transformed.name}</div>
+                      </td> */}
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900 flex items-center gap-1">
+                          <Mail size={12} />
+                          {transformed.email}
                         </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900 flex items-center gap-1">
-                        <Mail size={12} />
-                        {lead.email}
-                      </div>
-                      <div className="text-sm text-gray-500 flex items-center gap-1">
-                        <Phone size={12} />
-                        {lead.phone}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{lead.interest}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-600">{lead.source}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(lead.status)}`}>
-                        {lead.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`text-sm font-semibold ${getScoreColor(lead.score)}`}>
-                        {lead.score}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {new Date(lead.lastContact).toLocaleDateString()}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <div className="flex justify-end gap-2">
-                        <button
-                          onClick={() => setEditingLead(lead)}
-                          className="text-blue-600 hover:text-blue-900"
-                        >
-                          <Edit size={16} />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteLead(lead.id)}
-                          className="text-red-600 hover:text-red-900"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900 flex items-center gap-1">
+                          <Phone size={12} />
+                          {transformed.phone}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900 flex items-center gap-1">
+                          <Building size={12} />
+                          {transformed.company}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {transformed.createdAt !== 'N/A' 
+                          ? new Date(transformed.createdAt).toLocaleString('en-US', {
+                              year: 'numeric',
+                              month: 'short',
+                              day: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })
+                          : 'N/A'
+                        }
+                      </td>
+                      {/* <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <div className="flex justify-end gap-2">
+                          <button
+                            onClick={() => handleDeleteLead(lead._id)}
+                            className="text-red-600 hover:text-red-900"
+                            title="Delete Lead"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      </td> */}
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           )}
@@ -396,6 +318,28 @@ export default function LeadsPage() {
             setShowAddModal(false);
             setEditingLead(null);
           }}
+        />
+      )}
+
+      {/* Toast Notification */}
+      {toast && (
+        <CustomToast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
+
+      {/* Confirmation Dialog */}
+      {confirmDialog && (
+        <ConfirmDialog
+          title={confirmDialog.title}
+          message={confirmDialog.message}
+          confirmText={confirmDialog.confirmText}
+          cancelText={confirmDialog.cancelText}
+          type={confirmDialog.type}
+          onConfirm={confirmDialog.onConfirm}
+          onCancel={confirmDialog.onCancel}
         />
       )}
     </div>
@@ -568,7 +512,7 @@ function LeadModal({ lead, onSave, onClose }) {
             </div>
           </div>
 
-          <div className="flex gap-3 pt-4">
+          {/* <div className="flex gap-3 pt-4">
             <button
               type="submit"
               className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg font-medium transition-colors"
@@ -582,7 +526,7 @@ function LeadModal({ lead, onSave, onClose }) {
             >
               Cancel
             </button>
-          </div>
+          </div> */}
         </form>
       </div>
     </div>

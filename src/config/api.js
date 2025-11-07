@@ -10,7 +10,7 @@ const API_CONFIG = {
   
   // Production (replace with your ngrok URL)
   PRODUCTION: {
-    HTTPS: 'https://b7ce9d8bacdb.ngrok-free.app',
+    HTTPS: process.env.NEXT_PUBLIC_API_BASE_URL || 'https://callapi.neurovisesolutions.com',
     WS: 'wss://b7ce9d8bacdb.ngrok-free.app',
   },
   

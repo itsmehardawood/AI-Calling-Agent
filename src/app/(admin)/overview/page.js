@@ -245,7 +245,7 @@ export default function OverviewPage() {
           } else if (call.status === 'completed') {
             type = 'qualified';
             status = 'Call Completed';
-          } else if (call.status === 'busy') {
+          } else if (call.status === 'ringing') {
             type = 'failed';
             status = 'Busy';
           }
@@ -253,7 +253,7 @@ export default function OverviewPage() {
           return {
             id: call.call_id,
             type,
-            number: call.to || call.call_id, // Display part of call_id
+            number: call.to || 'unknown number', // Display part of call_id
             status,
             time: timeAgo,
             duration,
@@ -307,9 +307,9 @@ export default function OverviewPage() {
     <AdminLayout>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center px-5  justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Overview</h1>
+            <h1 className="text-4xl font-bold text-gray-900">Overview</h1>
             <p className="text-gray-600 mt-1">Analytics and performance metrics for your calling agents</p>
           </div>
           <div className="flex gap-2">
@@ -423,9 +423,9 @@ export default function OverviewPage() {
         </div>
 
         {/* Charts Row 1 */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Calls Over Time */}
-          <div className="lg:col-span-2 bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Calls Over Time</h3>
             {loading ? (
               <div className="flex items-center justify-center h-[300px]">
@@ -501,17 +501,17 @@ export default function OverviewPage() {
               </div>
             ) : (
               <>
-                <ResponsiveContainer width="100%" height={300}>
+                <ResponsiveContainer width="100%" height={240}>
                   <PieChart>
                     <Pie
                       data={callDistributionData}
                       cx="50%"
                       cy="50%"
                       labelLine={false}
-                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                      outerRadius={80}
+                      label={({ name, percent }) => `${(percent * 100).toFixed(0)}%`}
+                      outerRadius={90}
                       fill="#8884d8"
-                      dataKey="value"
+                      dataKey="value" 
                     >
                       {callDistributionData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />

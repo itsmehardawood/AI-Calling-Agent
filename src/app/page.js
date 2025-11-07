@@ -4,10 +4,12 @@
 // import Home from '../components/Home';
 
 import Home from "./components/Home";
+import DeviceInfoLogger from "./components/DeviceInfoLogger";
 
 export default function HomePage() {
   return (
     <main>
+      <DeviceInfoLogger />
       {/* <GeneratePrompt /> */}
       {/* <LoginUI/> */}
       <Home/>

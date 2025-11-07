@@ -9,9 +9,9 @@ import { useState } from 'react';
 
 const navigation = [
   { name: 'Overview', href: '/overview', icon: Home },
-  { name: 'Dashboard', href: '/dashboard', icon: BookDashedIcon },
+  // { name: 'Dashboard', href: '/dashboard', icon: BookDashedIcon },
 //   { name: 'Businesses', href: '/businesses', icon: Building2Icon },
-  { name: 'Business', href: '/prompts', icon: FileTextIcon },
+  { name: 'Products', href: '/prompts', icon: FileTextIcon },
   
   // { name: 'Agents', href: '/users', icon: UserIcon },
   { name: 'Leads', href: '/Leads', icon: Users },

@@ -12,6 +12,8 @@ import {
   updateProductStatus,
 } from "../../lib/productApi";
 import AdminLayout from "@/app/components/admin/AdminLayout";
+import CustomToast from "@/app/components/CustomToast";
+import ConfirmDialog from "@/app/components/ConfirmDialog";
 
 
 function PromptsManagementPageInner() {
@@ -23,6 +25,8 @@ function PromptsManagementPageInner() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedProductForDashboard, setSelectedProductForDashboard] = useState(null);
+  const [toast, setToast] = useState(null);
+  const [confirmDialog, setConfirmDialog] = useState(null);
 
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -72,6 +76,11 @@ function PromptsManagementPageInner() {
     }
   }, [products, selectionMode]);
 
+  // Show toast notification
+  const showToast = (message, type = 'success') => {
+    setToast({ message, type });
+  };
+
   const fetchProducts = async () => {
     setLoading(true);
     try {
@@ -91,7 +100,7 @@ function PromptsManagementPageInner() {
       setProducts(productsArray);
     } catch (error) {
       console.error("Error fetching products:", error);
-      alert("Error fetching products: " + error.message);
+      showToast("Error fetching products: " + error.message, 'error');
     } finally {
       setLoading(false);
     }
@@ -125,7 +134,7 @@ function PromptsManagementPageInner() {
   const handleGeneratePrompt = async () => {
     // Validate required fields
     if (!formData.name || !formData.category || !formData.description) {
-      alert("Please fill in product name, category, and description before generating prompt.");
+      showToast("Please fill in product name, category, and description before generating prompt.", 'warning');
       return;
     }
 
@@ -142,8 +151,9 @@ function PromptsManagementPageInner() {
       
       setGeneratedPrompt(response.prompt);
       setFormData((prev) => ({ ...prev, prompt: response.prompt }));
+      showToast("Prompt generated successfully!", 'success');
     } catch (error) {
-      alert("Error generating prompt: " + error.message);
+      showToast("Error generating prompt: " + error.message, 'error');
     } finally {
       setIsGenerating(false);
     }
@@ -172,14 +182,21 @@ function PromptsManagementPageInner() {
       };
 
       if (editingProduct) {
+        console.log('Updating product with ID:', editingProduct.id);
+        console.log('Product data:', productData);
         await updateProduct(editingProduct.id, productData);
+        showToast("Product updated successfully!", 'success');
       } else {
+        console.log('Creating new product');
+        console.log('Product data:', productData);
         await createProduct(productData);
+        showToast("Product created successfully!", 'success');
       }
       await fetchProducts();
       resetForm();
     } catch (error) {
-      alert("Error saving product: " + error.message);
+      console.error("Error saving product:", error);
+      showToast("Error saving product: " + error.message, 'error');
     } finally {
       setLoading(false);
     }
@@ -203,23 +220,35 @@ function PromptsManagementPageInner() {
   };
 
   const handleDelete = async (productId) => {
-    if (confirm("Are you sure you want to delete this product?")) {
-      try {
-        await deleteProduct(productId);
-        await fetchProducts();
-      } catch (error) {
-        alert("Error deleting product: " + error.message);
-      }
-    }
+    setConfirmDialog({
+      title: "Delete Product",
+      message: "Are you sure you want to delete this product? This action cannot be undone.",
+      confirmText: "Delete",
+      cancelText: "Cancel",
+      type: "danger",
+      onConfirm: async () => {
+        try {
+          await deleteProduct(productId);
+          showToast("Product deleted successfully!", 'success');
+          await fetchProducts();
+        } catch (error) {
+          showToast("Error deleting product: " + error.message, 'error');
+        } finally {
+          setConfirmDialog(null);
+        }
+      },
+      onCancel: () => setConfirmDialog(null)
+    });
   };
 
   const handleToggleStatus = async (productId, currentStatus) => {
     const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
     try {
       await updateProductStatus(productId, newStatus);
+      showToast(`Product ${newStatus === 'active' ? 'activated' : 'deactivated'} successfully!`, 'success');
       await fetchProducts();
     } catch (error) {
-      alert("Error updating product status: " + error.message);
+      showToast("Error updating product status: " + error.message, 'error');
     }
   };
 
@@ -287,7 +316,7 @@ function PromptsManagementPageInner() {
                 <ArrowLeft size={20} />
               </button> */}
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">
+                <h1 className="text-4xl font-bold text-gray-900">
                   {selectionMode ? "Select Product" : "Product Management"}
                 </h1>
                 <p className="text-gray-600 mt-1">
@@ -390,12 +419,12 @@ function PromptsManagementPageInner() {
                       <th className="py-3 px-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider w-[10%]">
                         Category
                       </th>
-                      <th className="py-3 px-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider w-[8%]">
+                      {/* <th className="py-3 px-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider w-[8%]">
                         Price
-                      </th>
-                      <th className="py-3 px-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider w-[11%]">
+                      </th> */}
+                      {/* <th className="py-3 px-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider w-[11%]">
                         Objectives
-                      </th>
+                      </th> */}
                       <th className="py-3 px-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider w-[8%]">
                         Status
                       </th>
@@ -451,24 +480,21 @@ function PromptsManagementPageInner() {
                               {product.category}
                             </span>
                           </td>
-                          <td className="py-4 px-4">
+                          {/* <td className="py-4 px-4">
                             <span className="text-gray-900 font-semibold">${product.price}</span>
-                          </td>
-                          <td className="py-4 px-4">
+                          </td> */}
+                          {/* <td className="py-4 px-4">
                             {product.objectives && product.objectives.length > 0 ? (
                               <div className="flex flex-col gap-1">
                                 <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-purple-100 text-purple-800 w-fit">
                                   {product.objectives.length} objective{product.objectives.length !== 1 ? 's' : ''}
                                 </span>
-                                <div className="text-xs text-gray-500 truncate" title={product.objectives.join(', ')}>
-                                  {product.objectives[0]}
-                                  {product.objectives.length > 1 && ` +${product.objectives.length - 1} more`}
-                                </div>
+                              
                               </div>
                             ) : (
                               <span className="text-gray-400 text-xs">No objectives</span>
                             )}
-                          </td>
+                          </td> */}
                           <td className="py-4 px-4">
                             <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${getStatusColor(product.status)}`}>
                               {product.status}
@@ -657,7 +683,7 @@ function PromptsManagementPageInner() {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                      <div>
+                      {/* <div>
                         <label className="block text-sm font-medium mb-2 text-gray-700">
                           Price <span className="text-blue-600">(optional)</span>
                         </label>
@@ -672,8 +698,10 @@ function PromptsManagementPageInner() {
                           min="0"
                           required
                         />
-                      </div>
-                      <div>
+                      </div> */}
+
+
+                      {/* <div>
                         <label className="block text-sm font-medium mb-2 text-gray-700">
                           Prompt Type <span className="text-red-500">*</span>
                         </label>
@@ -686,7 +714,7 @@ function PromptsManagementPageInner() {
                           <option value="sales">Sales</option>
                           <option value="marketing">Marketing</option>
                         </select>
-                      </div>
+                      </div> */}
                     </div>
 
                     <div className="mt-4">
@@ -710,7 +738,7 @@ function PromptsManagementPageInner() {
                     <div className="flex justify-between items-center mb-4">
                       <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
                         <div className="w-1 h-6 bg-green-600 rounded-full"></div>
-                        Objectives
+                        Criteria 
                         <span className="text-sm font-normal text-gray-600">
                           ({formData.objectives.length})
                         </span>
@@ -721,7 +749,7 @@ function PromptsManagementPageInner() {
                         className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm transition-all shadow-sm hover:shadow-md flex items-center gap-2"
                       >
                         <Plus size={16} />
-                        Add Objective
+                        Add Criteria
                       </button>
                     </div>
 
@@ -757,7 +785,7 @@ function PromptsManagementPageInner() {
                   <div className="bg-gradient-to-br from-purple-50 to-blue-50 rounded-xl p-5 border border-purple-200">
                     <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
                       <div className="w-1 h-6 bg-purple-600 rounded-full"></div>
-                      AI-Generated Prompt
+                      AI-Generated Script
                     </h3>
                     
                     <div className="mb-4">
@@ -768,16 +796,16 @@ function PromptsManagementPageInner() {
                         className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 disabled:from-gray-400 disabled:to-gray-400 text-white px-6 py-3 rounded-lg flex items-center gap-2 transition-all shadow-md hover:shadow-lg"
                       >
                         <Sparkles size={18} />
-                        {isGenerating ? "Generating..." : "Generate AI Prompt"}
+                        {isGenerating ? "Generating..." : "Generate AI Call Script"}
                       </button>
                       <p className="text-xs text-gray-600 mt-2">
-                        Fill in product details above before generating the prompt
+                        Fill in product details above before generating the script
                       </p>
                     </div>
 
                     <div>
                       <label className="block text-sm font-medium mb-2 text-gray-700">
-                        Generated Prompt <span className="text-red-500">*</span>
+                        Generated Script  <span className="text-red-500">*</span>
                       </label>
                       <textarea
                         name="prompt"
@@ -812,6 +840,28 @@ function PromptsManagementPageInner() {
               </div>
             </div>
           </div>
+        )}
+
+        {/* Toast Notification */}
+        {toast && (
+          <CustomToast
+            message={toast.message}
+            type={toast.type}
+            onClose={() => setToast(null)}
+          />
+        )}
+
+        {/* Confirmation Dialog */}
+        {confirmDialog && (
+          <ConfirmDialog
+            title={confirmDialog.title}
+            message={confirmDialog.message}
+            confirmText={confirmDialog.confirmText}
+            cancelText={confirmDialog.cancelText}
+            type={confirmDialog.type}
+            onConfirm={confirmDialog.onConfirm}
+            onCancel={confirmDialog.onCancel}
+          />
         )}
       </div>
     </AdminLayout>

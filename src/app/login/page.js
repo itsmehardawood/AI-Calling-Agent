@@ -87,7 +87,7 @@ const handleLogin = async (e) => {
     // Redirect by role
     const role = (result.role || localStorage.getItem('role') || '').toLowerCase();
     if (role === 'admin') {
-      router.push('/dashboard');
+      router.push('/overview');
     } else {
       router.push('/HomePage');
     }
