@@ -14,15 +14,19 @@ import {
   Building,
   Calendar,
   Target,
-  TrendingUp
+  TrendingUp,
+  ChevronDown,
+  Package
 } from "lucide-react";
 import AdminLayout from "@/app/components/admin/AdminLayout";
 import CustomToast from "@/app/components/CustomToast";
 import ConfirmDialog from "@/app/components/ConfirmDialog";
-import { getLeads, deleteLead } from "../../lib/leadsApi";
+import { getLeads, deleteLead, addPromptToLead } from "../../lib/leadsApi";
+import { getProducts } from "../../lib/productApi";
 
 export default function LeadsPage() {
   const [leads, setLeads] = useState([]);
+  const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [showAddModal, setShowAddModal] = useState(false);
@@ -30,6 +34,9 @@ export default function LeadsPage() {
   const [toast, setToast] = useState(null);
   const [confirmDialog, setConfirmDialog] = useState(null);
   const [pagination, setPagination] = useState(null);
+  const [openDropdownId, setOpenDropdownId] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const LEADS_PER_PAGE = 10;
 
   // Show toast notification
   const showToast = (message, type = 'success') => {
@@ -37,10 +44,26 @@ export default function LeadsPage() {
   };
 
   useEffect(() => {
-    fetchLeads();
-  }, []);
+    fetchLeads(currentPage);
+    fetchProducts();
+  }, [currentPage]);
 
-  const fetchLeads = async () => {
+  const fetchProducts = async () => {
+    try {
+      const userId = typeof window !== 'undefined' ? localStorage.getItem('user_id') : null;
+      if (!userId) {
+        throw new Error('User ID not found. Please login again.');
+      }
+
+      const response = await getProducts(userId);
+      setProducts(response.products || []);
+    } catch (error) {
+      console.error("Error fetching products:", error);
+      showToast("Error fetching products: " + error.message, 'error');
+    }
+  };
+
+  const fetchLeads = async (page = 1) => {
     setLoading(true);
     try {
       // Get user_id from localStorage
@@ -49,8 +72,8 @@ export default function LeadsPage() {
         throw new Error('User ID not found. Please login again.');
       }
 
-      console.log('Fetching leads for userId:', userId);
-      const response = await getLeads(userId);
+      console.log('Fetching leads for userId:', userId, 'page:', page);
+      const response = await getLeads(userId, page, LEADS_PER_PAGE);
       console.log('Fetched leads response:', response);
 
       if (response.status === 'success') {
@@ -75,6 +98,8 @@ export default function LeadsPage() {
       phone: rawData.phone || 'N/A',
       company: rawData.company || 'N/A',
       createdAt: rawData.createdOn || rawData.created_on || 'N/A',
+      productName: rawData.product_name || null,
+      productId: rawData.product_id || null,
     };
   };
 
@@ -120,6 +145,112 @@ export default function LeadsPage() {
       },
       onCancel: () => setConfirmDialog(null)
     });
+  };
+
+  const handleAssignProduct = async (productId, leadId) => {
+    try {
+      await addPromptToLead(productId, leadId);
+      showToast("Product assigned to lead successfully!", 'success');
+      setOpenDropdownId(null);
+    } catch (error) {
+      showToast("Error assigning product: " + error.message, 'error');
+    }
+  };
+
+  const toggleDropdown = (leadId) => {
+    setOpenDropdownId(openDropdownId === leadId ? null : leadId);
+  };
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
+
+  const renderPagination = () => {
+    if (!pagination || pagination.total_pages <= 1) return null;
+
+    const pages = [];
+    const totalPages = pagination.total_pages;
+    const current = pagination.page;
+
+    // Show first page
+    pages.push(1);
+
+    // Show pages around current page
+    let startPage = Math.max(2, current - 1);
+    let endPage = Math.min(totalPages - 1, current + 1);
+
+    // Add ellipsis before if needed
+    if (startPage > 2) {
+      pages.push('...');
+    }
+
+    // Add middle pages
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
+
+    // Add ellipsis after if needed
+    if (endPage < totalPages - 1) {
+      pages.push('...');
+    }
+
+    // Show last page (if not already shown)
+    if (totalPages > 1) {
+      pages.push(totalPages);
+    }
+
+    // Remove duplicates
+    const uniquePages = pages.filter((page, index, self) => 
+      self.indexOf(page) === index
+    );
+
+    return (
+      <div className="flex items-center justify-between border-t border-gray-200 bg-white px-6 py-4">
+        <div className="flex items-center gap-2">
+          <p className="text-sm text-gray-700">
+            Showing page <span className="font-medium">{current}</span> of{' '}
+            <span className="font-medium">{totalPages}</span>
+            {' '}({pagination.total_leads} total leads)
+          </p>
+        </div>
+        
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => handlePageChange(current - 1)}
+            disabled={current === 1}
+            className="px-3 py-1.5 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Previous
+          </button>
+
+          {uniquePages.map((page, index) => (
+            page === '...' ? (
+              <span key={`ellipsis-${index}`} className="px-2 text-gray-500">...</span>
+            ) : (
+              <button
+                key={page}
+                onClick={() => handlePageChange(page)}
+                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                  current === page
+                    ? 'bg-blue-600 text-white'
+                    : 'border border-gray-300 text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                {page}
+              </button>
+            )
+          ))}
+
+          <button
+            onClick={() => handlePageChange(current + 1)}
+            disabled={current === totalPages}
+            className="px-3 py-1.5 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Next
+          </button>
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -246,9 +377,12 @@ export default function LeadsPage() {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Created On
                   </th>
-                  {/* <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
-                  </th> */}
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Product Name
+                  </th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Assign Product
+                  </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -289,17 +423,69 @@ export default function LeadsPage() {
                           : 'N/A'
                         }
                       </td>
-                      {/* <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <div className="flex justify-end gap-2">
-                          <button
-                            onClick={() => handleDeleteLead(lead._id)}
-                            className="text-red-600 hover:text-red-900"
-                            title="Delete Lead"
-                          >
-                            <Trash2 size={16} />
-                          </button>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">
+                          {transformed.productName ? (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
+                              <Package size={12} />
+                              {transformed.productName}
+                            </span>
+                          ) : (
+                            <span className="text-gray-400 text-xs italic">No product assigned</span>
+                          )}
                         </div>
-                      </td> */}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <div className="flex justify-end gap-2 relative">
+                          <div className="relative">
+                            <button
+                              onClick={() => toggleDropdown(lead._id)}
+                              className="flex items-center gap-2 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors"
+                              title="Assign Product"
+                            >
+                              <Package size={16} />
+                              Assign
+                              <ChevronDown size={14} />
+                            </button>
+                            
+                            {openDropdownId === lead._id && (
+                              <>
+                                <div 
+                                  className="fixed inset-0 z-10" 
+                                  onClick={() => setOpenDropdownId(null)}
+                                />
+                                <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 z-20 max-h-60 overflow-y-auto">
+                                  {products.length === 0 ? (
+                                    <div className="px-4 py-3 text-sm text-gray-500 text-center">
+                                      No products available
+                                    </div>
+                                  ) : (
+                                    <div className="py-1">
+                                      {products.map((product) => (
+                                        <button
+                                          key={product.id}
+                                          onClick={() => handleAssignProduct(product.id, lead._id)}
+                                          className="w-full text-left px-4 py-2 hover:bg-blue-50 transition-colors flex items-start gap-2"
+                                        >
+                                          <Package size={14} className="text-blue-600 mt-0.5 flex-shrink-0" />
+                                          <div className="flex-1">
+                                            <div className="text-sm font-medium text-gray-900">
+                                              {product.name}
+                                            </div>
+                                            <div className="text-xs text-gray-500 truncate">
+                                              {product.category}
+                                            </div>
+                                          </div>
+                                        </button>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      </td>
                     </tr>
                   );
                 })}
@@ -307,6 +493,9 @@ export default function LeadsPage() {
             </table>
           )}
         </div>
+        
+        {/* Pagination */}
+        {renderPagination()}
       </div>
 
       {/* Add/Edit Lead Modal */}

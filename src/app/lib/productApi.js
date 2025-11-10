@@ -54,11 +54,11 @@ export async function getProducts(userId) {
   try {
     const response = await apiFetch(`/business/${userId}/products`);
 
-    console.log('Get products response status:', response.status);
+    // console.log('Get products response status:', response.status);
     
     if (!response.ok) {
       const contentType = response.headers.get("content-type");
-      console.log('Response content-type:', contentType);
+      // console.log('Response content-type:', contentType);
       
       if (contentType && contentType.includes("application/json")) {
         const error = await response.json();
@@ -70,7 +70,15 @@ export async function getProducts(userId) {
       }
     }
 
-    return await response.json();
+    // Clone the response to read it twice
+    const responseClone = response.clone();
+    const rawText = await responseClone.text();
+    // console.log('Raw response text:', rawText);
+    
+    const data = await response.json();
+    // console.log('Parsed JSON data:', data);
+    // console.log('First product from parsed data:', data.products?.[0]);
+    return data;
   } catch (error) {
     console.error('Error fetching products:', error);
     throw error;

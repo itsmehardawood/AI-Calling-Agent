@@ -90,13 +90,13 @@ function PromptsManagementPageInner() {
         throw new Error('User ID not found. Please login again.');
       }
       
-      console.log('Fetching products for userId:', userId);
       const response = await getProducts(userId);
-      console.log('Fetched products response:', response);
+   
       
       // The API returns { businessId: "...", products: [...] }
       const productsArray = response.products || [];
-      console.log('Products array:', productsArray);
+     
+  
       setProducts(productsArray);
     } catch (error) {
       console.error("Error fetching products:", error);
@@ -182,13 +182,10 @@ function PromptsManagementPageInner() {
       };
 
       if (editingProduct) {
-        console.log('Updating product with ID:', editingProduct.id);
-        console.log('Product data:', productData);
+     
         await updateProduct(editingProduct.id, productData);
         showToast("Product updated successfully!", 'success');
       } else {
-        console.log('Creating new product');
-        console.log('Product data:', productData);
         await createProduct(productData);
         showToast("Product created successfully!", 'success');
       }
@@ -434,6 +431,9 @@ function PromptsManagementPageInner() {
                       <th className="py-3 px-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider w-[8%]">
                         Created
                       </th>
+                      <th className="py-3 px-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider w-[8%]">
+                        Updated
+                      </th>
                       {!selectionMode && (
                         <th className="py-3 px-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider w-[13%]">
                           Actions
@@ -514,11 +514,36 @@ function PromptsManagementPageInner() {
                           </td>
                           <td className="py-4 px-4">
                             <span className="text-xs text-gray-600 whitespace-nowrap">
-                              {product.created_at ? new Date(product.created_at).toLocaleDateString('en-US', { 
-                                month: 'short', 
-                                day: 'numeric',
-                                year: 'numeric'
-                              }) : 'N/A'}
+                              {product.created_at ? (() => {
+                                try {
+                                  const date = new Date(product.created_at);
+                                  return date.toLocaleDateString('en-US', { 
+                                    month: 'short', 
+                                    day: 'numeric',
+                                    year: 'numeric'
+                                  });
+                                } catch (e) {
+                                  console.error('Error parsing created_at:', product.created_at, e);
+                                  return 'Invalid Date';
+                                }
+                              })() : 'N/A'}
+                            </span>
+                          </td>
+                          <td className="py-4 px-4">
+                            <span className="text-xs text-gray-600 whitespace-nowrap">
+                              {product.updated_at ? (() => {
+                                try {
+                                  const date = new Date(product.updated_at);
+                                  return date.toLocaleDateString('en-US', { 
+                                    month: 'short', 
+                                    day: 'numeric',
+                                    year: 'numeric'
+                                  });
+                                } catch (e) {
+                                  console.error('Error parsing updated_at:', product.updated_at, e);
+                                  return 'Invalid Date';
+                                }
+                              })() : 'N/A'}
                             </span>
                           </td>
                           {!selectionMode && (
