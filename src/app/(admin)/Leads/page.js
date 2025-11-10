@@ -386,8 +386,10 @@ export default function LeadsPage() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {filteredLeads.map((lead) => {
+                {filteredLeads.map((lead, index) => {
                   const transformed = transformLead(lead);
+                  const isLastRow = index === filteredLeads.length - 1;
+                  const isSecondLastRow = index === filteredLeads.length - 2;
                   return (
                     <tr key={lead._id} className="hover:bg-gray-50">
                       {/* <td className="px-6 py-4 whitespace-nowrap">
@@ -454,7 +456,9 @@ export default function LeadsPage() {
                                   className="fixed inset-0 z-10" 
                                   onClick={() => setOpenDropdownId(null)}
                                 />
-                                <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 z-20 max-h-60 overflow-y-auto">
+                                <div className={`absolute right-0 w-64 bg-white rounded-lg shadow-lg border border-gray-200 z-20 max-h-60 overflow-y-auto ${
+                                  isLastRow || isSecondLastRow ? 'bottom-full mb-2' : 'mt-2'
+                                }`}>
                                   {products.length === 0 ? (
                                     <div className="px-4 py-3 text-sm text-gray-500 text-center">
                                       No products available

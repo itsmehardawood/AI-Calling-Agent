@@ -3,7 +3,7 @@
  */
 
 // Use the correct base URL
-const BASE_URL = "https://42bdfec5debc.ngrok-free.app" ;
+const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL  ;
 
 export async function apiFetchLeads(endpoint, options = {}) {
   const url = `${BASE_URL}${endpoint}`;
