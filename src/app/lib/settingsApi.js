@@ -1,6 +1,6 @@
 // lib/settingsApi.js
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ||'https://d11cbcd484a5.ngrok-free.app';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ;
 
 // Helper function to get user ID from localStorage
 const getUserId = () => {
