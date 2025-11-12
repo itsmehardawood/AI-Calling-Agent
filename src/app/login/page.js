@@ -277,7 +277,7 @@ export default function LoginUI() {
     setLoading(true);
 
     const result = await loginUser({ username: email, password });
-    console.log(':white_check_mark: Login result:', result);
+    // console.log(':white_check_mark: Login result:', result);
 
     if (result.success) {
       const savedToken = localStorage.getItem('access_token');
@@ -293,9 +293,9 @@ export default function LoginUI() {
           const emailName = email.split('@')[0];
           const formattedName = emailName.charAt(0).toUpperCase() + emailName.slice(1);
           localStorage.setItem('userFullName', formattedName);
-          console.log(':white_check_mark: Using email-based name:', formattedName);
+          // console.log(':white_check_mark: Using email-based name:', formattedName);
         } else {
-          console.log(':white_check_mark: Using stored name:', storedName);
+          // console.log(':white_check_mark: Using stored name:', storedName);
         }
       }
 

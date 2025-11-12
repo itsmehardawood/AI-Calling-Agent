@@ -257,27 +257,21 @@ export default function LeadsPage() {
     <AdminLayout>
     <div className="space-y-6">
       {/* Page Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between pt-5 px-5">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center">
             <Target className="text-blue-600" size={20} />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Leads Management</h1>
+            <h1 className="text-4xl font-bold text-gray-900">Leads Management</h1>
             <p className="text-gray-600 mt-1">Track and manage your sales leads</p>
           </div>
         </div>
-        {/* <button
-          onClick={() => setShowAddModal(true)}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
-        >
-          <UserPlus size={16} />
-          Add Lead
-        </button> */}
+       
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 px-5">
         <div className="bg-white rounded-xl border border-gray-200 p-4">
           <div className="flex items-center justify-between">
             <div>

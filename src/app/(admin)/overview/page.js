@@ -15,8 +15,10 @@ import {
   PhoneOutgoing,
   Package,
   RefreshCw,
-  Activity
+  Activity,
+  LucideLogOut
 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 // Dynamic imports for recharts to avoid SSR issues
 const ResponsiveContainer = dynamic(
@@ -303,11 +305,49 @@ export default function OverviewPage() {
     }
   };
 
+
+  const router = useRouter();
+    const handleLogout = () => {
+      // Clear localStorage and redirect to login
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('role');
+      localStorage.removeItem('user_id');
+      router.push('/login');
+    };
+
   return (
     <AdminLayout>
       <div className="space-y-6">
+
         {/* Header */}
-        <div className="flex items-center px-5  justify-between">
+        <div className="flex items-center justify-between px-5 pt-5">
+          <div>
+            <h1 className="text-4xl font-bold text-gray-900">Overview</h1>
+            <p className="text-gray-600 mt-1">Analytics and performance metrics for your calling agents</p>
+          </div>
+          <div className="flex gap-2">
+            <button 
+              onClick={() => window.location.reload()}
+              disabled={loading}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
+              Refresh Data
+            </button>
+
+            <button
+              onClick={() => handleLogout()}
+              className="inline-flex items-center gap-2 bg-gray-700 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm transition-colors"
+            >
+              <LucideLogOut size={16} />
+              Logout
+            </button>
+          </div>
+        </div>
+
+
+        {/* Header before logout button */}
+        {/* <div className="flex items-center px-5  justify-between">
           <div>
             <h1 className="text-4xl font-bold text-gray-900">Overview</h1>
             <p className="text-gray-600 mt-1">Analytics and performance metrics for your calling agents</p>
@@ -322,7 +362,7 @@ export default function OverviewPage() {
               Refresh Data
             </button>
           </div>
-        </div>
+        </div> */}
 
         {/* Loading State */}
         {loading && (
