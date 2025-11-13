@@ -1,7 +1,7 @@
 // components/admin/Sidebar.jsx
 'use client';
 
-import {Building2Icon, FileTextIcon, Home, MenuIcon, Settings, User2Icon, UserIcon, Users, X, BarChart3, BookDashed, BookDashedIcon } from 'lucide-react';
+import {Building2Icon, FileTextIcon, Home, MenuIcon, Settings, User2Icon, UserIcon, Users, X, BarChart3, BookDashed, BookDashedIcon, MessageSquare } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -15,6 +15,7 @@ const navigation = [
   
   // { name: 'Agents', href: '/users', icon: UserIcon },
   { name: 'Leads', href: '/Leads', icon: Users },
+  { name: 'Transcription History', href: '/TranscriptionHistory', icon: MessageSquare },
   { name: 'Settings', href: '/settings', icon: Settings },
 ];
 

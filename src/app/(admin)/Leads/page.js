@@ -72,9 +72,9 @@ export default function LeadsPage() {
         throw new Error('User ID not found. Please login again.');
       }
 
-      console.log('Fetching leads for userId:', userId, 'page:', page);
+      // console.log('Fetching leads for userId:', userId, 'page:', page);
       const response = await getLeads(userId, page, LEADS_PER_PAGE);
-      console.log('Fetched leads response:', response);
+      // console.log('Fetched leads response:', response);
 
       if (response.status === 'success') {
         setLeads(response.leads || []);

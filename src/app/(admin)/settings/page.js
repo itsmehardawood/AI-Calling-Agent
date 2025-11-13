@@ -85,7 +85,7 @@ export default function SettingsCompliancePage() {
     setIsLoadingBusiness(true);
     try {
       const response = await getBusinessProfile();
-      console.log('Business profile response:', response);
+      // console.log('Business profile response:', response);
       
       if (response) {
         setBusinessInfo({
@@ -167,15 +167,15 @@ export default function SettingsCompliancePage() {
     setIsLoadingScheduling(true);
     try {
       const response = await getCallScheduling();
-      console.log('Call scheduling response:', response);
-      console.log('Response regions:', response?.regions);
-      console.log('Response regions length:', response?.regions?.length);
+      // console.log('Call scheduling response:', response);
+      // console.log('Response regions:', response?.regions);
+      // console.log('Response regions length:', response?.regions?.length);
       
       if (response && response.regions && Array.isArray(response.regions)) {
-        console.log('Processing regions...');
+        // console.log('Processing regions...');
         // Ensure timestamps are in ISO format
         const regionsWithTimeStrings = response.regions.map(region => {
-          console.log('Processing region:', region);
+          // console.log('Processing region:', region);
           return {
             ...region,
             id: region.id || Date.now().toString(),
@@ -188,13 +188,13 @@ export default function SettingsCompliancePage() {
             recordingRetentionDays: region.recordingRetentionDays || 1
           };
         });
-        console.log('Processed regions:', regionsWithTimeStrings);
+        // console.log('Processed regions:', regionsWithTimeStrings);
         setRegions(regionsWithTimeStrings);
         // Set instantCallEnabled from response if available, otherwise default to true
         setInstantCallEnabled(response.instantCallEnabled ?? true);
       } else {
         // No regions found, initialize empty
-        console.log('No regions found in response');
+        // console.log('No regions found in response');
         setRegions([]);
         setInstantCallEnabled(true);
       }
@@ -278,8 +278,8 @@ export default function SettingsCompliancePage() {
       const existingRegions = regions.filter(r => r.id && r.id.length === 24);
       const newRegions = regions.filter(r => !r.id || r.id.length !== 24);
 
-      console.log('Existing regions to update:', existingRegions.length);
-      console.log('New regions to create:', newRegions.length);
+      // console.log('Existing regions to update:', existingRegions.length);
+      // console.log('New regions to create:', newRegions.length);
 
       // Update existing regions using PUT API
       const updatePromises = existingRegions.map(region => {
@@ -314,7 +314,7 @@ export default function SettingsCompliancePage() {
           })),
           instantCallEnabled: instantCallEnabled
         };
-        console.log('Creating new regions with data:', JSON.stringify(schedulingData, null, 2));
+        // console.log('Creating new regions with data:', JSON.stringify(schedulingData, null, 2));
         createPromise = saveCallScheduling(schedulingData);
       }
 
@@ -345,7 +345,7 @@ export default function SettingsCompliancePage() {
     setIsLoadingRetention(true);
     try {
       const response = await getRecordingRetention();
-      console.log('Recording retention response:', response);
+      // console.log('Recording retention response:', response);
       
       if (response) {
         // If customDays > 0, it's a custom period
@@ -393,7 +393,7 @@ export default function SettingsCompliancePage() {
         customDays: retentionPeriod === 'custom' ? parseInt(customDays) : 0
       };
       
-      console.log('Saving retention data:', retentionData);
+      // console.log('Saving retention data:', retentionData);
       await saveRecordingRetention(retentionData);
       setToast({ show: true, message: 'Recording retention settings saved successfully!', type: 'success' });
       setIsEditingRetention(false);
@@ -436,7 +436,7 @@ export default function SettingsCompliancePage() {
     try {
       await saveConsentPolicy(consentScript);
     } catch (postError) {
-      console.log('POST failed, trying PUT...');
+      // console.log('POST failed, trying PUT...');
       await updateConsentPolicy(consentScript);
     }
     setToast({ show: true, message: 'Consent policy saved successfully!', type: 'success' });

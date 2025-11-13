@@ -7,7 +7,7 @@ const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL  ;
 
 export async function apiFetchLeads(endpoint, options = {}) {
   const url = `${BASE_URL}${endpoint}`;
-  console.log('API Request:', url, options.method || 'GET');
+  // console.log('API Request:', url, options.method || 'GET');
   
   try {
     const response = await fetch(url, {
