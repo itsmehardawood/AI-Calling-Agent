@@ -28,7 +28,7 @@ const About = () => {
           video.playsInline = true;
           await video.play();
         } catch (error) {
-          console.log("Autoplay prevented:", error);
+          // console.log("Autoplay prevented:", error);
         }
       };
       

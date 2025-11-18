@@ -125,7 +125,7 @@ const UserInputForm = () => {
 
     try {
       const payload = constructPayload();
-      console.log('Sending payload:', payload);
+      // console.log('Sending payload:', payload);
 
       const response = await apiFetch(`/api/calls/outbound`, {
         method: 'POST',
@@ -142,7 +142,7 @@ const UserInputForm = () => {
       }
 
       const result = await response.json();
-      console.log('Call initiated successfully:', result);
+      // console.log('Call initiated successfully:', result);
 
       if (result.call_id) {
         if (typeof window !== 'undefined') {

@@ -282,7 +282,7 @@ export const deleteCallSchedulingRegion = async (regionId) => {
     }
 
     const data = await response.json();
-    console.log('Delete response data:', data);
+    // console.log('Delete response data:', data);
     return data;
   } catch (error) {
     console.error('Error deleting call scheduling region:', error);
@@ -306,7 +306,7 @@ export const saveRecordingRetention = async (retentionData) => {
       customDays: retentionData.customDays || 0,
     };
 
-    console.log('Saving recording retention:', JSON.stringify(payload, null, 2));
+    // console.log('Saving recording retention:', JSON.stringify(payload, null, 2));
 
     const response = await fetch(`${API_BASE_URL}/api/settings/recording-retention`, {
       method: 'POST',
@@ -323,7 +323,7 @@ export const saveRecordingRetention = async (retentionData) => {
     }
 
     const data = await response.json();
-    console.log('Recording retention saved:', data);
+    // console.log('Recording retention saved:', data);
     return data;
   } catch (error) {
     console.error('Error saving recording retention settings:', error);
@@ -343,7 +343,7 @@ export const getRecordingRetention = async () => {
     }
 
     const url = `${API_BASE_URL}/api/settings/business/${userId}/settings/recording-retention`;
-    console.log('[getRecordingRetention] Request URL:', url);
+    // console.log('[getRecordingRetention] Request URL:', url);
 
     const response = await fetch(url, {
       method: 'GET',
