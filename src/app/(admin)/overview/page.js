@@ -323,7 +323,7 @@ export default function OverviewPage() {
         <div className="flex items-center justify-between px-5 pt-5">
           <div>
             <h1 className="text-4xl font-bold text-gray-900">Overview</h1>
-            <p className="text-gray-600 mt-1">Analytics and performance metrics for your calling agents</p>
+            <p className="text-gray-600 mt-1">Analytics and performance metrics for your calling agent</p>
           </div>
           <div className="flex gap-2">
             <button 
