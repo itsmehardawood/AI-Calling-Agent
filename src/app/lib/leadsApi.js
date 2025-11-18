@@ -19,7 +19,7 @@ export async function apiFetchLeads(endpoint, options = {}) {
       ...options,
     });
     
-    console.log('API Response status:', response.status);
+    // console.log('API Response status:', response.status);
     return response;
   } catch (error) {
     console.error('API Fetch Error:', error);

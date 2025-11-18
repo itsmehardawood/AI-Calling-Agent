@@ -26,7 +26,9 @@ export default function Sidebar() {
   return (
     <>
       {/* Mobile menu button */}
-      <div className="lg:hidden fixed top-4 left-4 z-50">
+    {sidebarOpen === false && (
+
+        <div className="lg:hidden fixed top-4 left-4 z-50">
         <button
           type="button"
           className="p-2 text-gray-700 bg-white rounded-md shadow-lg"
@@ -35,10 +37,11 @@ export default function Sidebar() {
           <MenuIcon className="h-6 w-6" />
         </button>
       </div>
+    )}
 
       {/* Sidebar for mobile */}
       {sidebarOpen && (
-        <div className="lg:hidden fixed inset-0 z-40 bg-black bg-opacity-50">
+        <div className="lg:hidden fixed inset-0 z-40 bg-black/30 bg-opacity-50">
           <div className="fixed inset-y-0 left-0 w-64 bg-white shadow-lg">
             <div className="flex items-center justify-between p-4 border-b">
               <h1 className="text-xl font-bold text-gray-800">AI Agent Admin</h1>

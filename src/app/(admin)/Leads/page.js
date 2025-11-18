@@ -699,21 +699,7 @@ function LeadModal({ lead, onSave, onClose }) {
             </div>
           </div>
 
-          {/* <div className="flex gap-3 pt-4">
-            <button
-              type="submit"
-              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg font-medium transition-colors"
-            >
-              {lead ? 'Update Lead' : 'Add Lead'}
-            </button>
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 py-2 px-4 rounded-lg font-medium transition-colors"
-            >
-              Cancel
-            </button>
-          </div> */}
+        
         </form>
       </div>
     </div>

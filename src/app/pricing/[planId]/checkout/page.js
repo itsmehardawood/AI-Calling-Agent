@@ -145,15 +145,15 @@ export default function CheckoutPage() {
 
     try {
       // Simulate Stripe payment processing
-      console.log('Processing payment with Stripe:', {
-        plan: selectedPlan.id,
-        ...formData,
-        payment: {
-          ...paymentData,
-          cardNumber: '•••• •••• •••• ' + paymentData.cardNumber.slice(-4)
-        },
-        timestamp: new Date().toISOString(),
-      });
+      // console.log('Processing payment with Stripe:', {
+      //   plan: selectedPlan.id,
+      //   ...formData,
+      //   payment: {
+      //     ...paymentData,
+      //     cardNumber: '•••• •••• •••• ' + paymentData.cardNumber.slice(-4)
+      //   },
+      //   timestamp: new Date().toISOString(),
+      // });
 
       await new Promise(resolve => setTimeout(resolve, 2000));
       

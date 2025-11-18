@@ -69,7 +69,7 @@ export default function SignupPage() {
 
       if (!res.ok) {
         const errorData = await res.json();
-        console.log("errorData:", errorData);
+        // console.log("errorData:", errorData);
         throw new Error(errorData.message || "User Already exist with this email");
       }
 

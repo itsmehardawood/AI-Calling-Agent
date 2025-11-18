@@ -2,9 +2,8 @@
 "use client";
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Plus, Edit, Trash2, Power, Sparkles, Save, ArrowLeft, Check, MoreVertical, Filter, Eye, X } from "lucide-react";
+import { Plus, Edit, Trash2, Check, ArrowLeft } from "lucide-react";
 import {
-  generateProductPrompt,
   createProduct,
   getProducts,
   updateProduct,
@@ -14,6 +13,7 @@ import {
 import AdminLayout from "@/app/components/admin/AdminLayout";
 import CustomToast from "@/app/components/CustomToast";
 import ConfirmDialog from "@/app/components/ConfirmDialog";
+import ProductModal from "@/app/components/admin/ProductModal";
 
 
 function PromptsManagementPageInner() {
@@ -21,8 +21,6 @@ function PromptsManagementPageInner() {
   const [loading, setLoading] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
-  const [generatedPrompt, setGeneratedPrompt] = useState("");
-  const [isGenerating, setIsGenerating] = useState(false);
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedProductForDashboard, setSelectedProductForDashboard] = useState(null);
   const [toast, setToast] = useState(null);
@@ -111,54 +109,6 @@ function PromptsManagementPageInner() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleObjectiveChange = (index, value) => {
-    const newObjectives = [...formData.objectives];
-    newObjectives[index] = value;
-    setFormData((prev) => ({ ...prev, objectives: newObjectives }));
-  };
-
-  const addObjective = () => {
-    setFormData((prev) => ({
-      ...prev,
-      objectives: [...prev.objectives, ""],
-    }));
-  };
-
-  const removeObjective = (index) => {
-    setFormData((prev) => ({
-      ...prev,
-      objectives: prev.objectives.filter((_, i) => i !== index),
-    }));
-  };
-
-  const handleGeneratePrompt = async () => {
-    // Validate required fields
-    if (!formData.name || !formData.category || !formData.description) {
-      showToast("Please fill in product name, category, and description before generating prompt.", 'warning');
-      return;
-    }
-
-    setIsGenerating(true);
-    try {
-      const response = await generateProductPrompt({
-        name: formData.name,
-        category: formData.category,
-        description: formData.description,
-        price: formData.price,
-        objective: formData.objectives.filter(obj => obj.trim() !== "").join(", "),
-        promptType: formData.promptType,
-      });
-      
-      setGeneratedPrompt(response.prompt);
-      setFormData((prev) => ({ ...prev, prompt: response.prompt }));
-      showToast("Prompt generated successfully!", 'success');
-    } catch (error) {
-      showToast("Error generating prompt: " + error.message, 'error');
-    } finally {
-      setIsGenerating(false);
-    }
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -212,7 +162,6 @@ function PromptsManagementPageInner() {
       prompt: product.prompt,
       promptType: product.promptType || "sales",
     });
-    setGeneratedPrompt(product.prompt);
     setShowCreateForm(true);
   };
 
@@ -261,7 +210,6 @@ function PromptsManagementPageInner() {
       prompt: "",
       promptType: "sales",
     });
-    setGeneratedPrompt("");
     setEditingProduct(null);
     setShowCreateForm(false);
   };
@@ -305,13 +253,7 @@ function PromptsManagementPageInner() {
           {/* Header */}
           <div className="mb-6">
             <div className="flex items-center gap-4 mb-4">
-              {/* <button
-                onClick={handleBackToDashboard}
-                className="bg-white hover:bg-gray-100 border border-gray-200 text-gray-700 p-2 rounded-lg transition-colors"
-                title="Back to Dashboard"
-              >
-                <ArrowLeft size={20} />
-              </button> */}
+          
               <div>
                 <h1 className="text-4xl font-bold text-gray-900">
                   {selectionMode ? "Select Product" : "Product Management"}
@@ -480,21 +422,7 @@ function PromptsManagementPageInner() {
                               {product.category}
                             </span>
                           </td>
-                          {/* <td className="py-4 px-4">
-                            <span className="text-gray-900 font-semibold">${product.price}</span>
-                          </td> */}
-                          {/* <td className="py-4 px-4">
-                            {product.objectives && product.objectives.length > 0 ? (
-                              <div className="flex flex-col gap-1">
-                                <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-purple-100 text-purple-800 w-fit">
-                                  {product.objectives.length} objective{product.objectives.length !== 1 ? 's' : ''}
-                                </span>
-                              
-                              </div>
-                            ) : (
-                              <span className="text-gray-400 text-xs">No objectives</span>
-                            )}
-                          </td> */}
+                     
                           <td className="py-4 px-4">
                             <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${getStatusColor(product.status)}`}>
                               {product.status}
@@ -644,228 +572,16 @@ function PromptsManagementPageInner() {
         </div>
 
         {/* Create/Edit Form Modal */}
-        {showCreateForm && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-hidden shadow-2xl animate-fadeIn">
-              {/* Modal Header */}
-              <div className="bg-gradient-to-r from-slate-900 to-slate-800 px-6 py-5 flex items-center justify-between sticky top-0 z-10">
-                <div>
-                  <h2 className="text-2xl font-bold text-white">
-                    {editingProduct ? "Edit Product" : "Create New Product"}
-                  </h2>
-                  <p className="text-blue-100 text-sm mt-1">
-                    {editingProduct ? "Update your product information" : "Add a new product to your collection"}
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={resetForm}
-                  className="text-white hover:bg-white/20 rounded-lg p-2 transition-colors"
-                  title="Close"
-                >
-                  <X size={24} />
-                </button>
-              </div>
-
-              {/* Modal Body */}
-              <div className="overflow-y-auto max-h-[calc(90vh-140px)] p-6">
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  {/* Basic Info Section */}
-                  <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-5 border border-gray-200">
-                    <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                      <div className="w-1 h-6 bg-blue-600 rounded-full"></div>
-                      Product Information
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium mb-2 text-gray-700">
-                          Product Name <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                          type="text"
-                          name="name"
-                          value={formData.name}
-                          onChange={handleInputChange}
-                          className="w-full bg-white border border-gray-300 rounded-lg px-4 py-2.5 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
-                          placeholder="Enter product name"
-                          required
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium mb-2 text-gray-700">
-                          Category <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                          type="text"
-                          name="category"
-                          value={formData.category}
-                          onChange={handleInputChange}
-                          className="w-full bg-white border border-gray-300 rounded-lg px-4 py-2.5 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
-                          placeholder="e.g., Electronics, Software"
-                          required
-                        />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                      {/* <div>
-                        <label className="block text-sm font-medium mb-2 text-gray-700">
-                          Price <span className="text-blue-600">(optional)</span>
-                        </label>
-                        <input
-                          type="number"
-                          name="price"
-                          value={formData.price}
-                          onChange={handleInputChange}
-                          className="w-full bg-white border border-gray-300 rounded-lg px-4 py-2.5 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
-                          placeholder="0.00"
-                          step="0.01"
-                          min="0"
-                          required
-                        />
-                      </div> */}
-
-
-                      {/* <div>
-                        <label className="block text-sm font-medium mb-2 text-gray-700">
-                          Prompt Type <span className="text-red-500">*</span>
-                        </label>
-                        <select
-                          name="promptType"
-                          value={formData.promptType}
-                          onChange={handleInputChange}
-                          className="w-full bg-white border border-gray-300 rounded-lg px-4 py-2.5 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
-                        >
-                          <option value="sales">Sales</option>
-                          <option value="marketing">Marketing</option>
-                        </select>
-                      </div> */}
-                    </div>
-
-                    <div className="mt-4">
-                      <label className="block text-sm font-medium mb-2 text-gray-700">
-                        Description <span className="text-red-500">*</span>
-                      </label>
-                      <textarea
-                        name="description"
-                        value={formData.description}
-                        onChange={handleInputChange}
-                        className="w-full bg-white border border-gray-300 rounded-lg px-4 py-2.5 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all resize-none"
-                        placeholder="Brief description of the product"
-                        rows="3"
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  {/* Objectives Section */}
-                  <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-5 border border-green-200">
-                    <div className="flex justify-between items-center mb-4">
-                      <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-                        <div className="w-1 h-6 bg-green-600 rounded-full"></div>
-                        Criteria 
-                        <span className="text-sm font-normal text-gray-600">
-                          ({formData.objectives.length})
-                        </span>
-                      </h3>
-                      <button
-                        type="button"
-                        onClick={addObjective}
-                        className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm transition-all shadow-sm hover:shadow-md flex items-center gap-2"
-                      >
-                        <Plus size={16} />
-                        Add Criteria
-                      </button>
-                    </div>
-
-                    <div className="space-y-3">
-                      {formData.objectives.map((objective, index) => (
-                        <div key={index} className="flex gap-2">
-                          <div className="flex items-center justify-center w-8 h-10 text-gray-400 text-sm font-medium">
-                            {index + 1}.
-                          </div>
-                          <input
-                            type="text"
-                            placeholder="Enter objective"
-                            value={objective}
-                            onChange={(e) => handleObjectiveChange(index, e.target.value)}
-                            className="flex-1 bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all"
-                            required
-                          />
-                          {formData.objectives.length > 1 && (
-                            <button
-                              type="button"
-                              onClick={() => removeObjective(index)}
-                              className="text-red-600 hover:bg-red-50 rounded-lg p-2 transition-colors"
-                            >
-                              <Trash2 size={18} />
-                            </button>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* AI Generation */}
-                  <div className="bg-gradient-to-br from-purple-50 to-blue-50 rounded-xl p-5 border border-purple-200">
-                    <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                      <div className="w-1 h-6 bg-purple-600 rounded-full"></div>
-                      AI-Generated Script
-                    </h3>
-                    
-                    <div className="mb-4">
-                      <button
-                        type="button"
-                        onClick={handleGeneratePrompt}
-                        disabled={isGenerating || !formData.name || !formData.category || !formData.description}
-                        className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 disabled:from-gray-400 disabled:to-gray-400 text-white px-6 py-3 rounded-lg flex items-center gap-2 transition-all shadow-md hover:shadow-lg"
-                      >
-                        <Sparkles size={18} />
-                        {isGenerating ? "Generating..." : "Generate AI Call Script"}
-                      </button>
-                      <p className="text-xs text-gray-600 mt-2">
-                        Fill in product details above before generating the script
-                      </p>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium mb-2 text-gray-700">
-                        Generated Script  <span className="text-red-500">*</span>
-                      </label>
-                      <textarea
-                        name="prompt"
-                        value={formData.prompt}
-                        onChange={handleInputChange}
-                        placeholder="Generated prompt will appear here, or you can write your own..."
-                        className="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 h-40 text-gray-900 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all"
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  {/* Actions */}
-                  <div className="flex gap-4 pt-4">
-                    <button
-                      type="submit"
-                      disabled={loading}
-                      className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white px-6 py-3 rounded-lg flex items-center gap-2 transition-colors shadow-sm font-medium"
-                    >
-                      <Save size={18} />
-                      {loading ? "Saving..." : editingProduct ? "Update Product" : "Create Product"}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={resetForm}
-                      className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-6 py-3 rounded-lg transition-colors font-medium"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </div>
-          </div>
-        )}
+        <ProductModal
+          isOpen={showCreateForm}
+          onClose={resetForm}
+          formData={formData}
+          setFormData={setFormData}
+          onSubmit={handleSubmit}
+          loading={loading}
+          editingProduct={editingProduct}
+          showToast={showToast}
+        />
 
         {/* Toast Notification */}
         {toast && (

@@ -14,8 +14,8 @@ const getUserId = () => {
 const parseJsonResponse = async (response, operationName) => {
   const contentType = response.headers.get('content-type');
   
-  console.log(`[${operationName}] Response status:`, response.status);
-  console.log(`[${operationName}] Content-Type:`, contentType);
+  // console.log(`[${operationName}] Response status:`, response.status);
+  // console.log(`[${operationName}] Content-Type:`, contentType);
   
   // Check if response is actually JSON
   if (!contentType || !contentType.includes('application/json')) {
@@ -37,7 +37,7 @@ const parseJsonResponse = async (response, operationName) => {
   }
   
   const data = await response.json();
-  console.log(`[${operationName}] Success:`, JSON.stringify(data, null, 2));
+  // console.log(`[${operationName}] Success:`, JSON.stringify(data, null, 2));
   return data;
 };
 
@@ -52,7 +52,7 @@ export const getBusinessProfile = async () => {
     }
 
     const url = `${API_BASE_URL}/api/settings/business-profile/${userId}`;
-    console.log('[getBusinessProfile] Request URL:', url);
+    // console.log('[getBusinessProfile] Request URL:', url);
 
     const response = await fetch(url, {
       method: 'GET',
@@ -85,7 +85,7 @@ export const saveBusinessProfile = async (businessData) => {
       agentTone: businessData.agentTone,
     };
 
-    console.log('Saving business profile:', JSON.stringify(payload, null, 2));
+    // console.log('Saving business profile:', JSON.stringify(payload, null, 2));
 
     const response = await fetch(`${API_BASE_URL}/api/settings/business-profile`, {
       method: 'POST',
@@ -102,7 +102,7 @@ export const saveBusinessProfile = async (businessData) => {
     }
 
     const data = await response.json();
-    console.log('Business profile saved:', data);
+    // console.log('Business profile saved:', data);
     return data;
   } catch (error) {
     console.error('Error saving business profile:', error);
@@ -137,7 +137,7 @@ export const saveCallScheduling = async (schedulingData) => {
       instantCallEnabled: schedulingData.instantCallEnabled,
     };
 
-    console.log('Sending call scheduling payload:', JSON.stringify(payload, null, 2));
+    // console.log('Sending call scheduling payload:', JSON.stringify(payload, null, 2));
 
     const response = await fetch(`${API_BASE_URL}/api/settings/call_scheduling`, {
       method: 'POST',
@@ -153,7 +153,7 @@ export const saveCallScheduling = async (schedulingData) => {
     }
 
     const data = await response.json();
-    console.log("Call scheduling response: ", data);
+    // console.log("Call scheduling response: ", data);
     return data;
   } catch (error) {
     console.error('Error saving call scheduling:', error);
@@ -173,7 +173,7 @@ export const getCallScheduling = async () => {
     }
 
     const url = `${API_BASE_URL}/api/settings/get_call_schedulings?businessId=${userId}`;
-    console.log('[getCallScheduling] Request URL:', url);
+    // console.log('[getCallScheduling] Request URL:', url);
 
     const response = await fetch(url, {
       method: 'GET',
@@ -184,7 +184,7 @@ export const getCallScheduling = async () => {
     });
 
     const data = await parseJsonResponse(response, 'getCallScheduling');
-    console.log('[getCallScheduling] Regions:', data.regions, 'Is array?', Array.isArray(data.regions));
+    // console.log('[getCallScheduling] Regions:', data.regions, 'Is array?', Array.isArray(data.regions));
     return data;
   } catch (error) {
     console.error('[getCallScheduling] Error:', error.message);
@@ -219,9 +219,9 @@ export const updateCallSchedulingRegion = async (regionId, regionData) => {
       recordingRetentionDays: regionData.recordingRetentionDays || 1
     };
 
-    console.log('Updating region:', regionId, 'with data:', JSON.stringify(payload, null, 2));
+    // console.log('Updating region:', regionId, 'with data:', JSON.stringify(payload, null, 2));
     const url = `${API_BASE_URL}/api/settings/update_call_scheduling/${userId}/region/${regionId}`;
-    console.log('Update URL:', url);
+    // console.log('Update URL:', url);
 
     const response = await fetch(url, {
       method: 'PUT',
@@ -231,7 +231,7 @@ export const updateCallSchedulingRegion = async (regionId, regionData) => {
       body: JSON.stringify(payload),
     });
 
-    console.log('Update response status:', response.status);
+    // console.log('Update response status:', response.status);
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -240,7 +240,7 @@ export const updateCallSchedulingRegion = async (regionId, regionData) => {
     }
 
     const data = await response.json();
-    console.log('Update response data:', data);
+    // console.log('Update response data:', data);
     return data;
   } catch (error) {
     console.error('Error updating call scheduling region:', error);
@@ -262,9 +262,9 @@ export const deleteCallSchedulingRegion = async (regionId) => {
       throw new Error('Region ID is required');
     }
 
-    console.log('Deleting region:', regionId, 'for business:', userId);
+    // console.log('Deleting region:', regionId, 'for business:', userId);
     const url = `${API_BASE_URL}/api/settings/delete_call_scheduling/${userId}/region/${regionId}`;
-    console.log('Delete URL:', url);
+    // console.log('Delete URL:', url);
 
     const response = await fetch(url, {
       method: 'DELETE',
@@ -273,7 +273,7 @@ export const deleteCallSchedulingRegion = async (regionId) => {
       },
     });
 
-    console.log('Delete response status:', response.status);
+    // console.log('Delete response status:', response.status);
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -373,7 +373,7 @@ export const getConsentPolicy = async () => {
     }
 
     const url = `${API_BASE_URL}/api/settings/business/${userId}/consent-policy`;
-    console.log('[getConsentPolicy] Request URL:', url);
+    // console.log('[getConsentPolicy] Request URL:', url);
 
     const response = await fetch(url, {
       method: 'GET',

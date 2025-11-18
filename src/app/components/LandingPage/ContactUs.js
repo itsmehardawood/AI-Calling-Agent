@@ -22,12 +22,12 @@ const ContactUs = () => {
       )
       .then(
         (result) => {
-          console.log("Message Sent:", result.text);
+          // console.log("Message Sent:", result.text);
           alert(" Email sent successfully!");
           form.current.reset();
         },
         (error) => {
-          console.log("Error:", error.text);
+          // console.log("Error:", error.text);
           alert(" Failed to send email, please try again.");
         }
       );

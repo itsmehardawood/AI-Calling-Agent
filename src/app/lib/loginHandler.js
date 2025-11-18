@@ -55,7 +55,7 @@ export async function loginUser({ username, password }) {
       const userId = getUserIdFromToken(data.access_token);
       if (userId) {
         localStorage.setItem('user_id', userId);
-        console.log("✅ Extracted and stored user_id:", userId);
+        // console.log("✅ Extracted and stored user_id:", userId);
       } else {
         console.warn("⚠️ user_id not found in token");
       }
