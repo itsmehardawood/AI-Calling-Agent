@@ -51,13 +51,19 @@ export async function loginUser({ username, password }) {
       // Store token
       localStorage.setItem('access_token', data.access_token);
 
-      // Extract user_id and store it (token may use 'sub')
-      const userId = getUserIdFromToken(data.access_token);
+      // Extract user_id from token or use from response
+      let userId = data.user_id; // First try to get from response
+      
+      if (!userId) {
+        // If not in response, extract from JWT token
+        userId = getUserIdFromToken(data.access_token);
+      }
+      
       if (userId) {
         localStorage.setItem('user_id', userId);
         // console.log("✅ Extracted and stored user_id:", userId);
       } else {
-        console.warn("⚠️ user_id not found in token");
+        console.warn("⚠️ user_id not found in token or response");
       }
     }
 
@@ -66,7 +72,12 @@ export async function loginUser({ username, password }) {
       localStorage.setItem('role', data.role);
     }
 
-    return { success: true, token: data.access_token, role: data.role };
+    return { 
+      success: true, 
+      token: data.access_token, 
+      role: data.role,
+      user_id: data.user_id || getUserIdFromToken(data.access_token)
+    };
   } catch (error) {
     console.error('❌ API Error:', error.message);
     return { success: false, error: error.message };

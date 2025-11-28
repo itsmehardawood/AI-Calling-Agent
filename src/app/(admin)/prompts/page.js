@@ -39,7 +39,7 @@ function PromptsManagementPageInner() {
     businessId: "",
     name: "",
     description: "",
-    category: "",
+    category: "Marketing", // Static value - not editable by users
     price: 0,
     objectives: [""],
     status: "active",
@@ -143,7 +143,7 @@ function PromptsManagementPageInner() {
         businessId: userId, // Using user_id as businessId
         name: formData.name,
         description: formData.description,
-        category: formData.category,
+        category: "Marketing", // Static value - users cannot change this
         price: parseFloat(formData.price) || 0,
         objectives: formData.objectives.filter(obj => obj.trim() !== ""),
         status: formData.status,
@@ -174,7 +174,7 @@ function PromptsManagementPageInner() {
       businessId: product.businessId,
       name: product.name,
       description: product.description,
-      category: product.category,
+      category: "Marketing", // Static value - always set to Marketing regardless of stored value
       price: product.price,
       objectives: product.objectives || [""],
       status: product.status,
@@ -222,7 +222,7 @@ function PromptsManagementPageInner() {
       businessId: "",
       name: "",
       description: "",
-      category: "",
+      category: "Marketing", // Static value - not editable by users
       price: 0,
       objectives: [""],
       status: "active",

@@ -51,7 +51,7 @@ export default function OverviewPage() {
 
         // Get user_id from localStorage
         const userId = localStorage.getItem('user_id') || "68bedea50a1f8b06e6dac22e"; // Fallback for testing
-        
+        console.log('User ID:', userId); // Debug log
         if (!userId) {
           setError('User ID not found. Please log in again.');
           setLoading(false);
@@ -59,11 +59,11 @@ export default function OverviewPage() {
         }
 
         // Make API call
-        const apiUrl = getApiUrl(`/api/calls/user-calls-summary?user_id=${userId}`);
+        const apiUrl = getApiUrl(`/api/calls/user-calls-summary?user=${userId}`);
         console.log('Fetching from:', apiUrl); // Debug log
         const response = await fetch(apiUrl, {
           headers: {
-            'ngrok-skip-browser-warning': 'true', // Skip ngrok warning page
+            'ngrok-skip-browser-warning': 'true', 
           }
         });
 

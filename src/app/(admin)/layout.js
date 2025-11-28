@@ -15,8 +15,10 @@ export default function AdminLayout({ children }) {
     // Prefer client-side stored role for faster checks
     const storedRole = typeof window !== 'undefined' ? localStorage.getItem('role') : null;
     if (storedRole) {
-      if (storedRole.toLowerCase() !== 'admin') {
-        router.replace('/start-call');
+      const role = storedRole.toLowerCase();
+      // Allow both 'admin' (superadmin) and 'user' (business users) to access admin routes
+      if (role !== 'admin' && role !== 'user') {
+        router.replace('/HomePage');
       } else {
         if (mounted) setChecking(false);
       }
@@ -36,7 +38,8 @@ export default function AdminLayout({ children }) {
         const role = (user?.role || '').toLowerCase();
         // Persist role for future fast checks
         if (role) localStorage.setItem('role', role);
-        if (role !== 'admin') {
+        // Allow both admin and user roles
+        if (role !== 'admin' && role !== 'user') {
           router.replace('/HomePage');
           return;
         }

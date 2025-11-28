@@ -1,10 +1,9 @@
+import SuperAdminSidebar from "./SuperAdminSidebar";
 
-import Sidebar from "./sidebar";
-
-export default function AdminLayout({ children }) {
+export default function SuperAdminLayout({ children }) {
   return (
     <div className="h-screen flex overflow-hidden bg-gray-50">
-      <Sidebar />
+      <SuperAdminSidebar />
       
       {/* Main content */}
       <div className="lg:ml-64 flex flex-col w-0 flex-1 overflow-hidden">

@@ -20,7 +20,6 @@ export default function ProductModal({
   // Auto-generate prompt when objectives change
   useEffect(() => {
     const hasValidData = formData.name && 
-                        formData.category && 
                         formData.description && 
                         formData.objectives.some(obj => obj.trim() !== "");
 
@@ -31,14 +30,14 @@ export default function ProductModal({
 
       return () => clearTimeout(timeoutId);
     }
-  }, [formData.objectives, formData.name, formData.category, formData.description]);
+  }, [formData.objectives, formData.name, formData.description]);
 
   const handleAutoGeneratePrompt = async () => {
     setIsGenerating(true);
     try {
       const response = await generateProductPrompt({
         name: formData.name,
-        category: formData.category,
+        category: "Marketing", // Static value - always send Marketing
         description: formData.description,
         price: formData.price,
         objective: formData.objectives.filter(obj => obj.trim() !== ""),
@@ -146,21 +145,6 @@ export default function ProductModal({
                         required
                       />
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-2 text-gray-700">
-                        Category <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        name="category"
-                        value={formData.category}
-                        onChange={handleInputChange}
-                        className="w-full bg-white border border-gray-300 rounded-lg px-4 py-2.5 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
-                        placeholder="e.g., Electronics, Software"
-                        required
-                      />
-                    </div>
-
                     <div>
                       <label className="block text-sm font-medium mb-2 text-gray-700">
                         Description <span className="text-red-500">*</span>
