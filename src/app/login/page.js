@@ -102,7 +102,7 @@ export default function LoginUI() {
           <div className="bg-white p-2.5 rounded-xl">
             <Headset className="w-6 h-6 text-blue-600" />
           </div>
-          <span className="text-2xl font-bold text-white">Calling-Agent</span>
+          <span className="text-2xl font-bold text-white">Neurovise Calling-Agent</span>
         </Link>
         
         <div className="relative z-10 text-center mt-15">

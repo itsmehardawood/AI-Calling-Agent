@@ -45,15 +45,16 @@ const Navbar = () => {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <div className={`w-10 h-10 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 flex items-center justify-center ${
+            {/* <div className={`w-10 h-10 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 flex items-center justify-center ${
               scrolled ? 'shadow-lg' : 'shadow-2xl'
             }`}>
               <Phone className="w-6 h-6 text-white" />
-            </div>
+            </div> */}
+            
             <span className={`text-2xl font-bold tracking-tight ${
               scrolled ? 'text-white' : 'text-white drop-shadow-lg'
             }`}>
-              Calling<span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">Agent</span>
+              Neurovise Calling<span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">Agent</span>
             </span>
           </motion.a>
 
@@ -167,6 +168,19 @@ const Navbar = () => {
                 >
                   Get Started
                 </a>
+                </motion.li>
+                <motion.li
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.6 }}
+                  className="pt-2"
+                >
+                  <button
+                    onClick={() => { setOpen(false); router.push('login'); }}
+                    className="block w-full py-3 text-center bg-white/10 backdrop-blur-md text-white border border-white/20 font-semibold rounded-xl transition-all duration-300 hover:bg-white/20 hover:shadow-2xl"
+                  >
+                    Sign In
+                  </button>
               </motion.li>
             </ul>
           </motion.div>
