@@ -12,7 +12,8 @@ import {
   BarChart3,
   Shield,
   MapPin,
-  FileText
+  FileText,
+  Activity
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -20,12 +21,16 @@ import { useState, useEffect } from 'react';
 
 const navigation = [
   { name: 'Global Overview', href: '/global-overview', icon: Globe },
+      { name: 'Products & Prompts', href: '/products-prompts', icon: FileText },
+
   { name: 'Numbers & Regions', href: '/numbers-regions', icon: MapPin },
-  { name: 'Products & Prompts', href: '/products-prompts', icon: FileText },
+ 
+  { name: 'Lead Activity Feed', href: '/lead-activity-feed', icon: Activity },
+
+  { name: 'Settings & Compliance', href: '/system-settings', icon: Settings },
 //   { name: 'Tenant Management', href: '/tenants', icon: Building2 },
 //   { name: 'System Analytics', href: '/analytics', icon: BarChart3 },
 //   { name: 'User Management', href: '/user-management', icon: Users },
-//   { name: 'System Settings', href: '/system-settings', icon: Settings },
 ];
 
 export default function SuperAdminSidebar() {

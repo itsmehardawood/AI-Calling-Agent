@@ -8,7 +8,6 @@ const API_CONFIG = {
     WS: 'ws://localhost:9001',
   },
   
-  // Production (replace with your ngrok URL)
   PRODUCTION: {
     HTTPS: process.env.NEXT_PUBLIC_API_BASE_URL || 'https://callapi.neurovisesolutions.com',
     WS: 'wss://b7ce9d8bacdb.ngrok-free.app',
@@ -50,6 +49,3 @@ export const getWebSocketUrl = (endpoint) => {
   return `${config.WS}${endpoint}`;
 };
 
-// Usage examples:
-// const apiUrl = getApiUrl('/api/calls/outbound');
-// const wsUrl = getWebSocketUrl('/api/calls/frontend-stream/call-123');
