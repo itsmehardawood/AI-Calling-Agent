@@ -1,4 +1,5 @@
-import { Edit, Trash2, Check } from 'lucide-react';
+import { useState } from 'react';
+import { Edit, Trash2, Check, Copy } from 'lucide-react';
 
 export default function ProductTable({
   products,
@@ -11,6 +12,7 @@ export default function ProductTable({
   getStatusColor,
   formatDate
 }) {
+  const [copiedId, setCopiedId] = useState(null);
   return (
     <div className="overflow-x-auto">
       <table className="w-full table-fixed">
@@ -21,6 +23,9 @@ export default function ProductTable({
                 Select
               </th>
             )}
+            <th className="py-3 px-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider w-[10%]">
+  Product ID
+</th>
             <th className="py-3 px-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider w-[18%]">
               Product Name
             </th>
@@ -72,6 +77,22 @@ export default function ProductTable({
                     </div>
                   </td>
                 )}
+
+                <td className="py-4 px-4">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigator.clipboard.writeText(product.id);
+                      setCopiedId(product.id);
+                      setTimeout(() => setCopiedId(null), 2000);
+                    }}
+                    className="text-blue-600 hover:bg-blue-50 rounded-lg p-2.5 transition-colors flex-shrink-0"
+                    title="Click to copy Product ID"
+                  >
+                    {copiedId === product.id ? 'Copied!' : <Copy size={16} />}
+                  </button>
+                </td>
+
                 <td className="py-4 px-4">
                   <div className="font-medium text-gray-900 truncate" title={product.name}>
                     {product.name}
