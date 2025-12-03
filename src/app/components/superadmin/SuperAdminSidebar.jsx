@@ -21,15 +21,15 @@ import { useState, useEffect } from 'react';
 
 const navigation = [
   { name: 'Global Overview', href: '/global-overview', icon: Globe },
-      { name: 'Products & Prompts', href: '/products-prompts', icon: FileText },
-
+  { name: 'Products & Prompts', href: '/products-prompts', icon: FileText },
   { name: 'Numbers & Regions', href: '/numbers-regions', icon: MapPin },
  
+
   { name: 'Lead Activity Feed', href: '/lead-activity-feed', icon: Activity },
+   { name: 'Analytics', href: '/analytics', icon: BarChart3 },
 
   { name: 'Settings & Compliance', href: '/system-settings', icon: Settings },
 //   { name: 'Tenant Management', href: '/tenants', icon: Building2 },
-//   { name: 'System Analytics', href: '/analytics', icon: BarChart3 },
 //   { name: 'User Management', href: '/user-management', icon: Users },
 ];
 
