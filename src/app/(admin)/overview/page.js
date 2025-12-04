@@ -51,7 +51,7 @@ export default function OverviewPage() {
 
         // Get user_id from localStorage
         const userId = localStorage.getItem('user_id') || "68bedea50a1f8b06e6dac22e"; // Fallback for testing
-        console.log('User ID:', userId); // Debug log
+        // console.log('User ID:', userId); // Debug log
         if (!userId) {
           setError('User ID not found. Please log in again.');
           setLoading(false);

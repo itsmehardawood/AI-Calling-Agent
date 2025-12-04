@@ -23,6 +23,9 @@ const Tooltip = dynamic(
 );
 
 export default function CallDistributionChart({ data, loading }) {
+  // Ensure slices carry their own fill color (avoids grey fallback)
+  const chartData = (data || []).map(item => ({ ...item, fill: item.color }));
+
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
       <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">
@@ -41,19 +44,15 @@ export default function CallDistributionChart({ data, loading }) {
           <ResponsiveContainer width="100%" height={200}>
             <PieChart>
               <Pie
-                data={data}
+                data={chartData}
                 cx="50%"
                 cy="50%"
                 labelLine={false}
                 label={({ name, percent }) => `${(percent * 100).toFixed(0)}%`}
                 outerRadius={70}
-                fill="#8884d8"
-                dataKey="value" 
-              >
-                {data.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
-                ))}
-              </Pie>
+                dataKey="value"
+                nameKey="name"
+              />
               <Tooltip contentStyle={{ fontSize: '12px' }} />
             </PieChart>
           </ResponsiveContainer>
