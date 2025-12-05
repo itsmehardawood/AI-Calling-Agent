@@ -45,6 +45,7 @@ function PromptsManagementPageInner() {
     status: "active",
     prompt: "",
     promptType: "sales",
+    agent_language: "English", // Default language
   });
 
 
@@ -148,6 +149,7 @@ function PromptsManagementPageInner() {
         objectives: formData.objectives.filter(obj => obj.trim() !== ""),
         status: formData.status,
         prompt: formData.prompt,
+        agent_language: formData.agent_language,
       };
 
       if (editingProduct) {
@@ -180,6 +182,7 @@ function PromptsManagementPageInner() {
       status: product.status,
       prompt: product.prompt,
       promptType: product.promptType || "sales",
+      agent_language: product.agent_language || "English",
     });
     setShowCreateForm(true);
   };
@@ -228,6 +231,7 @@ function PromptsManagementPageInner() {
       status: "active",
       prompt: "",
       promptType: "sales",
+      agent_language: "English",
     });
     setEditingProduct(null);
     setShowCreateForm(false);

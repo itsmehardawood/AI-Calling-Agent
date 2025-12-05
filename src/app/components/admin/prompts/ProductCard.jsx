@@ -1,4 +1,5 @@
-import { Edit, Trash2, Check } from 'lucide-react';
+import { useState } from 'react';
+import { Edit, Trash2, Check, Copy } from 'lucide-react';
 
 export default function ProductCard({
   product,
@@ -11,10 +12,19 @@ export default function ProductCard({
   getStatusColor,
   formatDate
 }) {
+  const [copiedId, setCopiedId] = useState(null);
+
   const handleCardClick = () => {
     if (selectionMode) {
       onSelect(product);
     }
+  };
+
+  const handleCopyId = (e) => {
+    e.stopPropagation();
+    navigator.clipboard.writeText(product.id);
+    setCopiedId(product.id);
+    setTimeout(() => setCopiedId(null), 2000);
   };
 
   return (
@@ -89,6 +99,29 @@ export default function ProductCard({
             <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(product.status)}`}>
               {product.status}
             </span>
+          </div>
+          <div>
+            <p className="text-xs text-gray-500 mb-1">Language</p>
+            <span className="text-xs font-medium text-gray-700 truncate block" title={product.agent_language}>
+              {product.agent_language || 'English'}
+            </span>
+          </div>
+          <div>
+            <p className="text-xs text-gray-500 mb-1">Product ID</p>
+            <button
+              onClick={handleCopyId}
+              className="flex items-center gap-1 text-xs font-medium text-blue-600 hover:text-blue-800 transition-colors"
+              title="Click to copy Product ID"
+            >
+              {copiedId === product.id ? (
+                <span className="text-green-600">✓ Copied!</span>
+              ) : (
+                <>
+                  <Copy size={12} />
+                  <span className="truncate">Copy ID</span>
+                </>
+              )}
+            </button>
           </div>
         </div>
 

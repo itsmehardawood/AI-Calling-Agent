@@ -1,8 +1,24 @@
 /* eslint-disable react/no-unescaped-entities */
 "use client";
-import { useState, useEffect } from "react";
-import { X, Trash2, Plus, Sparkles, Save, ArrowUp, ArrowDown } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { X, Trash2, Plus, Sparkles, Save, ArrowUp, ArrowDown, ChevronDown, Search } from "lucide-react";
 import { generateProductPrompt } from "@/app/lib/productApi";
+
+const SUPPORTED_LANGUAGES = [
+  "Afrikaans", "Amharic", "Arabic", "Assamese", "Azerbaijani", "Bashkir", "Belarusian",
+  "Bulgarian", "Bengali", "Breton", "Bosnian", "Catalan", "Chinese", "Croatian", "Czech",
+  "Danish", "Dutch", "English", "Spanish", "Estonian", "Basque", "Persian (Farsi)", "Finnish",
+  "Faroese", "French", "Galician", "German", "Greek", "Hebrew", "Hindi", "Hungarian",
+  "Icelandic", "Indonesian", "Italian", "Japanese", "Javanese", "Georgian", "Kazakh",
+  "Khmer", "Kannada", "Korean", "Latin", "Luxembourgish", "Lingala", "Lao", "Lithuanian",
+  "Latvian", "Malagasy", "Māori", "Macedonian", "Malayalam", "Mongolian", "Marathi",
+  "Malay", "Maltese", "Myanmar (Burmese)", "Nepali", "Norwegian Nynorsk / Norwegian",
+  "Occitan", "Punjabi", "Polish", "Pashto", "Portuguese", "Romanian", "Russian", "Sanskrit",
+  "Sindhi", "Sinhala", "Slovak", "Slovenian", "Shona", "Somali", "Albanian (sq)", "Serbian",
+  "Sundanese", "Swedish", "Swahili", "Tamil", "Telugu", "Tajik", "Thai", "Turkmen",
+  "Tagalog", "Turkish", "Tatar", "Ukrainian", "Urdu", "Uzbek", "Vietnamese", "Yiddish",
+  "Yoruba", "Cantonese (yue) / Chinese dialect variant"
+];
 
 export default function ProductModal({ 
   isOpen, 
@@ -16,6 +32,27 @@ export default function ProductModal({
 }) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedPrompt, setGeneratedPrompt] = useState("");
+  const [showLanguageDropdown, setShowLanguageDropdown] = useState(false);
+  const [languageSearch, setLanguageSearch] = useState("");
+  const dropdownRef = useRef(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowLanguageDropdown(false);
+        setLanguageSearch("");
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Filter languages based on search
+  const filteredLanguages = SUPPORTED_LANGUAGES.filter(lang =>
+    lang.toLowerCase().includes(languageSearch.toLowerCase())
+  );
 
   // Auto-generate prompt when objectives change
   useEffect(() => {
@@ -158,6 +195,70 @@ export default function ProductModal({
                         rows="3"
                         required
                       />
+                    </div>
+
+                    {/* Language Preference Dropdown */}
+                    <div className="relative" ref={dropdownRef}>
+                      <label className="block text-sm font-medium mb-2 text-gray-700">
+                        Agent Language Preference <span className="text-red-500">*</span>
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => setShowLanguageDropdown(!showLanguageDropdown)}
+                        className="w-full bg-white border border-gray-300 rounded-lg px-4 py-2.5 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all flex items-center justify-between hover:border-gray-400"
+                      >
+                        <span>{formData.agent_language || "Select Language"}</span>
+                        <ChevronDown size={18} className={`transition-transform ${showLanguageDropdown ? 'rotate-180' : ''}`} />
+                      </button>
+
+                      {/* Dropdown Menu */}
+                      {showLanguageDropdown && (
+                        <div className="absolute z-50 w-full mt-2 bg-white border border-gray-300 rounded-lg shadow-xl max-h-80 overflow-hidden">
+                          {/* Search Input */}
+                          <div className="p-3 border-b border-gray-200 sticky top-0 bg-white">
+                            <div className="relative">
+                              <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                              <input
+                                type="text"
+                                value={languageSearch}
+                                onChange={(e) => setLanguageSearch(e.target.value)}
+                                placeholder="Search languages..."
+                                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+                                onClick={(e) => e.stopPropagation()}
+                              />
+                            </div>
+                          </div>
+
+                          {/* Language List */}
+                          <div className="max-h-60 overflow-y-auto">
+                            {filteredLanguages.length > 0 ? (
+                              filteredLanguages.map((language) => (
+                                <button
+                                  key={language}
+                                  type="button"
+                                  onClick={() => {
+                                    setFormData((prev) => ({ ...prev, agent_language: language }));
+                                    setShowLanguageDropdown(false);
+                                    setLanguageSearch("");
+                                  }}
+                                  className={`w-full text-left px-4 py-2.5 hover:bg-blue-50 transition-colors ${
+                                    formData.agent_language === language 
+                                      ? 'bg-blue-100 text-blue-900 font-medium' 
+                                      : 'text-gray-900'
+                                  }`}
+                                >
+                                  {language}
+                                </button>
+                              ))
+                            ) : (
+                              <div className="px-4 py-8 text-center text-gray-500">
+                                <p className="text-sm">No languages found</p>
+                                <p className="text-xs mt-1">Try a different search term</p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>

@@ -35,7 +35,10 @@ export default function ProductTable({
             <th className="py-3 px-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider w-[8%]">
               Status
             </th>
-            <th className="py-3 px-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider w-[16%]">
+            <th className="py-3 px-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider w-[10%]">
+              Language
+            </th>
+            <th className="py-3 px-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider w-[14%]">
               Prompt
             </th>
             <th className="py-3 px-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider w-[8%]">
@@ -109,6 +112,11 @@ export default function ProductTable({
                 <td className="py-4 px-4">
                   <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${getStatusColor(product.status)}`}>
                     {product.status}
+                  </span>
+                </td>
+                <td className="py-4 px-4">
+                  <span className="text-xs text-gray-700 font-medium truncate max-w-full block" title={product.agent_language}>
+                    {product.agent_language || 'English'}
                   </span>
                 </td>
                 <td className="py-4 px-4">
