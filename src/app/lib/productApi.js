@@ -109,14 +109,32 @@ export async function getProductById(productId) {
  */
 export async function updateProduct(productId, productData) {
   try {
+    console.log('Updating product with data:', productData);
+    
     const response = await apiFetch(`/products/${productId}`, {
       method: 'PUT',
       body: JSON.stringify(productData),
     });
 
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'Failed to update product');
+      const contentType = response.headers.get("content-type");
+      let errorMessage = 'Failed to update product';
+      
+      if (contentType && contentType.includes("application/json")) {
+        const error = await response.json();
+        console.error('Server validation error:', error);
+        errorMessage = error.error || error.message || errorMessage;
+        // If there are validation details, include them
+        if (error.details) {
+          console.error('Validation details:', error.details);
+          errorMessage = `${errorMessage}: ${JSON.stringify(error.details)}`;
+        }
+      } else {
+        const text = await response.text();
+        console.error('Non-JSON error response:', text);
+      }
+      
+      throw new Error(errorMessage);
     }
 
     return await response.json();

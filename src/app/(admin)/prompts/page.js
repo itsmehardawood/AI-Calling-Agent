@@ -149,8 +149,11 @@ function PromptsManagementPageInner() {
         objectives: formData.objectives.filter(obj => obj.trim() !== ""),
         status: formData.status,
         prompt: formData.prompt,
-        agent_language: formData.agent_language,
+        agentLanguage: formData.agent_language, // Changed to camelCase for backend compatibility
       };
+
+      console.log('Submitting product data:', productData);
+      console.log('Editing product?', !!editingProduct, editingProduct?.id);
 
       if (editingProduct) {
      
