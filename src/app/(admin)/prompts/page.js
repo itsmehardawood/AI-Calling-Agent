@@ -36,7 +36,7 @@ function PromptsManagementPageInner() {
 
   // Form state
   const [formData, setFormData] = useState({
-    businessId: "",
+    user_id: "",
     name: "",
     description: "",
     category: "Marketing", // Static value - not editable by users
@@ -141,7 +141,7 @@ function PromptsManagementPageInner() {
       }
 
       const productData = {
-        businessId: userId, // Using user_id as businessId
+        user_id: userId, // Using user_id as businessId
         name: formData.name,
         description: formData.description,
         category: "Marketing", // Static value - users cannot change this
@@ -173,7 +173,7 @@ function PromptsManagementPageInner() {
   const handleEdit = (product) => {
     setEditingProduct(product);
     setFormData({
-      businessId: product.businessId,
+      user_id: product.businessId,
       name: product.name,
       description: product.description,
       category: "Marketing", // Static value - always set to Marketing regardless of stored value
@@ -222,7 +222,7 @@ function PromptsManagementPageInner() {
 
   const resetForm = () => {
     setFormData({
-      businessId: "",
+      user_id: "",
       name: "",
       description: "",
       category: "Marketing", // Static value - not editable by users

@@ -80,7 +80,7 @@ export const saveBusinessProfile = async (businessData) => {
     }
 
     const payload = {
-      businessId: userId,
+      user_id: userId,
       businessName: businessData.businessName,
       agentTone: businessData.agentTone,
     };
@@ -122,7 +122,7 @@ export const saveCallScheduling = async (schedulingData) => {
     }
 
     const payload = {
-      businessId: userId,
+      user_id: userId,
       regions: schedulingData.regions.map(region => ({
         name: region.name,
         startTime: region.startTime, // ISO 8601 timestamp
@@ -172,7 +172,7 @@ export const getCallScheduling = async () => {
       throw new Error('User ID not found');
     }
 
-    const url = `${API_BASE_URL}/api/settings/get_call_schedulings?businessId=${userId}`;
+    const url = `${API_BASE_URL}/api/settings/get_call_schedulings?user_id=${userId}`;
     // console.log('[getCallScheduling] Request URL:', url);
 
     const response = await fetch(url, {
@@ -184,7 +184,7 @@ export const getCallScheduling = async () => {
     });
 
     const data = await parseJsonResponse(response, 'getCallScheduling');
-    // console.log('[getCallScheduling] Regions:', data.regions, 'Is array?', Array.isArray(data.regions));
+    console.log('[getCallScheduling] Regions:', data.regions, 'Is array?', Array.isArray(data.regions));
     return data;
   } catch (error) {
     console.error('[getCallScheduling] Error:', error.message);
@@ -301,7 +301,7 @@ export const saveRecordingRetention = async (retentionData) => {
     }
 
     const payload = {
-      businessId: userId,
+      user_id: userId,
       period: retentionData.period || 0,
       customDays: retentionData.customDays || 0,
     };
@@ -400,7 +400,7 @@ export const saveConsentPolicy = async (script) => {
     }
 
     const payload = {
-      businessId: userId,
+      user_id: userId,
       script: script,
     };
 

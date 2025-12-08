@@ -59,7 +59,7 @@ export default function OverviewPage() {
         }
 
         // Make API call
-        const apiUrl = getApiUrl(`/api/calls/user-calls-summary?businessId=${userId}`);
+        const apiUrl = getApiUrl(`/api/calls/user-calls-summary?user_id=${userId}`);
         console.log('Fetching from:', apiUrl); // Debug log
         const response = await fetch(apiUrl, {
           headers: {

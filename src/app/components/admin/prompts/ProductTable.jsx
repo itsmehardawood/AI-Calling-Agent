@@ -38,9 +38,7 @@ export default function ProductTable({
             <th className="py-3 px-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider w-[10%]">
               Language
             </th>
-            <th className="py-3 px-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider w-[14%]">
-              Prompt
-            </th>
+           
             <th className="py-3 px-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider w-[8%]">
               Created
             </th>
@@ -114,23 +112,12 @@ export default function ProductTable({
                     {product.status}
                   </span>
                 </td>
-                <td className="py-4 px-4">
+                <td className="py-4 px-4 text-center">
                   <span className="text-xs text-gray-700 font-medium truncate max-w-full block" title={product.agent_language}>
                     {product.agent_language || 'English'}
                   </span>
                 </td>
-                <td className="py-4 px-4">
-                  {product.prompt ? (
-                    <div 
-                      className="text-xs text-gray-600 line-clamp-2 leading-relaxed cursor-help" 
-                      title={product.prompt}
-                    >
-                      {product.prompt}
-                    </div>
-                  ) : (
-                    <span className="text-xs text-red-400 italic">No prompt generated</span>
-                  )}
-                </td>
+           
                 <td className="py-4 px-4">
                   <span className="text-xs text-gray-600 whitespace-nowrap">
                     {formatDate(product.created_at)}
