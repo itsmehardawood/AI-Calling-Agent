@@ -63,7 +63,26 @@ export default function SubscriptionPlans() {
   ];
 
   const handlePlanSelect = (planId) => {
-    router.push(`/pricing/${planId}/checkout`);
+    // Check if user is logged in
+    const token = localStorage.getItem('access_token');
+    const role = localStorage.getItem('role');
+    
+    if (token && role) {
+      // User is logged in - redirect based on role
+      if (role.toLowerCase() === 'user') {
+        // Redirect to user subscriptions page
+        router.push('/subscriptions');
+      } else if (role.toLowerCase() === 'admin') {
+        // Redirect to admin dashboard
+        router.push('/overview');
+      } else {
+        // Fallback
+        router.push('/subscriptions');
+      }
+    } else {
+      // User not logged in - redirect to signup
+      router.push('/signup');
+    }
   };
 
   return (

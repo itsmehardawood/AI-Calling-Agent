@@ -57,6 +57,11 @@ export default function LoginUI() {
         localStorage.setItem('role', result.role);
       }
 
+      // Store subscription status
+      if (typeof result.isSubscribed !== 'undefined') {
+        localStorage.setItem('isSubscribed', result.isSubscribed.toString());
+      }
+
       if (typeof window !== 'undefined') {
         const storedName = localStorage.getItem('userFullName');
         

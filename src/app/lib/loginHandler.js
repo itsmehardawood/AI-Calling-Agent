@@ -65,6 +65,14 @@ export async function loginUser({ username, password }) {
       } else {
         console.warn("⚠️ user_id not found in token or response");
       }
+
+      // Store subscription status from backend
+      if (typeof data.isSubscribed !== 'undefined') {
+        localStorage.setItem('isSubscribed', data.isSubscribed.toString());
+      } else {
+        // Default to false if not provided
+        localStorage.setItem('isSubscribed', 'false');
+      }
     }
 
     // If backend includes role in login response, persist it for client logic
@@ -76,7 +84,8 @@ export async function loginUser({ username, password }) {
       success: true, 
       token: data.access_token, 
       role: data.role,
-      user_id: data.user_id || getUserIdFromToken(data.access_token)
+      user_id: data.user_id || getUserIdFromToken(data.access_token),
+      isSubscribed: data.isSubscribed || false
     };
   } catch (error) {
     console.error('❌ API Error:', error.message);

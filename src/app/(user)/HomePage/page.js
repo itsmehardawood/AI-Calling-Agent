@@ -83,6 +83,7 @@ export default function UserDashboard() {
   localStorage.removeItem('role');
   localStorage.removeItem('userFullName');
   localStorage.removeItem('user_id');
+  localStorage.removeItem('isSubscribed');
   router.push('/login');
   };
 

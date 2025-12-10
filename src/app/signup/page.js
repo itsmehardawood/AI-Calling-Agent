@@ -73,11 +73,18 @@ export default function SignupPage() {
         throw new Error(errorData.message || "User Already exist with this email");
       }
 
-      // Store the user's name in localStorage before redirecting to login
+      const responseData = await res.json();
+
+      // Store the user's name and subscription status in localStorage before redirecting
       if (typeof window !== 'undefined') {
         localStorage.setItem('userFullName', formData.full_name);
+        
+        // Store subscription status from signup response (default to false for new users)
+        const isSubscribed = responseData.isSubscribed || false;
+        localStorage.setItem('isSubscribed', isSubscribed.toString());
       }
 
+      // Redirect to login page after successful signup
       router.push("/login");
     } catch (error) {
       console.error("Signup error:", error);

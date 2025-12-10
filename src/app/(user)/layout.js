@@ -1,5 +1,6 @@
 import React, { Suspense } from "react";
 import UserAccessGate from "../components/UserAccessGate";
+import SubscriptionGate from "../components/SubscriptionGate";
 // import UserAccessGate from "../../components/UserAccessGate";
 
 export default function UserLayout({ children }) {
@@ -16,7 +17,11 @@ export default function UserLayout({ children }) {
         </div>
       }
     >
-      <UserAccessGate>{children}</UserAccessGate>
+      <UserAccessGate>
+        <SubscriptionGate>
+          {children}
+        </SubscriptionGate>
+      </UserAccessGate>
     </Suspense>
   );
 }

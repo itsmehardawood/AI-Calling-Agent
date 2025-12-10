@@ -1,7 +1,7 @@
 // components/admin/Sidebar.jsx
 'use client';
 
-import {Building2Icon, FileTextIcon, Home, MenuIcon, Settings, User2Icon, UserIcon, Users, X, BarChart3, BookDashed, BookDashedIcon, MessageSquare, LogOut } from 'lucide-react';
+import {Building2Icon, FileTextIcon, Home, MenuIcon, Settings, User2Icon, UserIcon, Users, X, BarChart3, BookDashed, BookDashedIcon, MessageSquare, LogOut, CreditCard } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
@@ -15,6 +15,8 @@ const navigation = [
   // { name: 'Agents', href: '/users', icon: UserIcon },
   { name: 'Leads', href: '/Leads', icon: Users },
   { name: 'Transcription History', href: '/TranscriptionHistory', icon: MessageSquare },
+    { name: 'Subscriptions', href: '/subscription-management', icon: CreditCard },
+
   { name: 'Settings', href: '/settings', icon: Settings },
 ];
 
@@ -45,6 +47,7 @@ export default function Sidebar() {
     localStorage.removeItem('access_token');
     localStorage.removeItem('role');
     localStorage.removeItem('user_id');
+    localStorage.removeItem('isSubscribed');
     router.push('/login');
   };
 

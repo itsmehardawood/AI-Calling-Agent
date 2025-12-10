@@ -60,6 +60,7 @@ export default function SuperAdminSidebar() {
     localStorage.removeItem('access_token');
     localStorage.removeItem('role');
     localStorage.removeItem('user_id');
+    localStorage.removeItem('isSubscribed');
     router.push('/login');
   };
 
