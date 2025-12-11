@@ -75,17 +75,68 @@ export default function SignupPage() {
 
       const responseData = await res.json();
 
-      // Store the user's name and subscription status in localStorage before redirecting
+      // Store user data in localStorage
       if (typeof window !== 'undefined') {
         localStorage.setItem('userFullName', formData.full_name);
         
-        // Store subscription status from signup response (default to false for new users)
         const isSubscribed = responseData.isSubscribed || false;
         localStorage.setItem('isSubscribed', isSubscribed.toString());
+        
+        const subscriptionTier = responseData.subscriptionTier || 'free';
+        localStorage.setItem('subscriptionTier', subscriptionTier);
+        
+        // Store user ID and role from signup response
+        if (responseData.id) {
+          localStorage.setItem('user_id', responseData.id);
+        }
+        if (responseData.role) {
+          localStorage.setItem('role', responseData.role);
+        }
       }
 
-      // Redirect to login page after successful signup
-      router.push("/login");
+      // Auto-login the user after signup
+      const loginRes = await apiFetch("/api/auth/login", {
+        method: "POST",
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Accept': 'application/json',
+        },
+        body: new URLSearchParams({
+          grant_type: 'password',
+          username: formData.email,
+          password: formData.password,
+          scope: '',
+          client_id: 'string',
+          client_secret: 'string',
+        }).toString(),
+      });
+
+      if (loginRes.ok) {
+        const loginData = await loginRes.json();
+        
+        // Store access token and update user data
+        if (loginData.access_token) {
+          localStorage.setItem('access_token', loginData.access_token);
+        }
+        if (loginData.user_id) {
+          localStorage.setItem('user_id', loginData.user_id);
+        }
+        if (loginData.role) {
+          localStorage.setItem('role', loginData.role);
+        }
+        if (typeof loginData.isSubscribed !== 'undefined') {
+          localStorage.setItem('isSubscribed', loginData.isSubscribed.toString());
+        }
+        if (loginData.subscriptionTier) {
+          localStorage.setItem('subscriptionTier', loginData.subscriptionTier);
+        }
+        
+        // Redirect to subscription page after successful login
+        router.push("/subscription-management");
+      } else {
+        // If auto-login fails, redirect to login page
+        router.push("/login");
+      }
     } catch (error) {
       console.error("Signup error:", error);
       alert(error.message);

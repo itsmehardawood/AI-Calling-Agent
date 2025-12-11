@@ -1,5 +1,4 @@
-const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "https://27f6b9b42b9c.ngrok-free.app";
-
+const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 export async function apiFetch(endpoint, options = {}) {
   const url = `${BASE_URL}${endpoint}`;
   
@@ -36,6 +35,12 @@ export async function getAllChatHistories(userId) {
     }
 
     const data = await response.json();
+    
+    // Check if no conversations found (API returns detail field)
+    if (data.detail && data.detail.includes('No conversations found')) {
+      return { conversations: [] };
+    }
+    
     return data;
   } catch (error) {
     console.error('Error fetching chat histories:', error);
@@ -59,6 +64,12 @@ export async function getConversationByCallId(conversationId) {
     }
 
     const data = await response.json();
+    
+    // Check if conversation not found (API returns detail field)
+    if (data.detail && data.detail.includes('Conversation not found')) {
+      return { conversation: [] };
+    }
+    
     return data;
   } catch (error) {
     console.error('Error fetching conversation:', error);

@@ -16,6 +16,7 @@ import {
   Calendar
 } from "lucide-react";
 import AdminLayout from "@/app/components/admin/AdminLayout";
+import AdminSubscriptionGate from "@/app/components/AdminSubscriptionGate";
 
 export default function CustomersPage() {
   const [customers, setCustomers] = useState([]);
@@ -121,7 +122,8 @@ export default function CustomersPage() {
 
   return (
     <AdminLayout>
-    <div className="space-y-6">
+      <AdminSubscriptionGate>
+      <div className="space-y-6">
       {/* Page Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -334,7 +336,8 @@ export default function CustomersPage() {
           }}
         />
       )}
-    </div>
+      </div>
+      </AdminSubscriptionGate>
     </AdminLayout>
   );
 }

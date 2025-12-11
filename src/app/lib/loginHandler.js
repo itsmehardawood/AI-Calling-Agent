@@ -73,6 +73,13 @@ export async function loginUser({ username, password }) {
         // Default to false if not provided
         localStorage.setItem('isSubscribed', 'false');
       }
+
+      // Store subscription tier
+      if (data.subscriptionTier) {
+        localStorage.setItem('subscriptionTier', data.subscriptionTier);
+      } else {
+        localStorage.setItem('subscriptionTier', 'free');
+      }
     }
 
     // If backend includes role in login response, persist it for client logic
@@ -85,7 +92,8 @@ export async function loginUser({ username, password }) {
       token: data.access_token, 
       role: data.role,
       user_id: data.user_id || getUserIdFromToken(data.access_token),
-      isSubscribed: data.isSubscribed || false
+      isSubscribed: data.isSubscribed || false,
+      subscriptionTier: data.subscriptionTier || 'free'
     };
   } catch (error) {
     console.error('❌ API Error:', error.message);

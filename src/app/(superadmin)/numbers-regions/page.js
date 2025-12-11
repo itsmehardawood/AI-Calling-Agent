@@ -23,7 +23,7 @@ export default function NumbersRegionsPage() {
 
         // Make API call to get regional numbers data
         const apiUrl = getApiUrl('/super_admin/numbers-regions');
-        console.log('Fetching from:', apiUrl);
+        // console.log('Fetching from:', apiUrl);
         
         const response = await fetch(apiUrl, {
           headers: {

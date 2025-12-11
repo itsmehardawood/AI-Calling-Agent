@@ -1,6 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 'use client';
 import AdminLayout from '@/app/components/admin/AdminLayout';
+import AdminSubscriptionGate from '@/app/components/AdminSubscriptionGate';
 import CustomToast from '@/app/components/CustomToast';
 import BusinessProfile from '@/app/components/admin/settings/BusinessProfile';
 import CallScheduling from '@/app/components/admin/settings/CallScheduling';
@@ -477,6 +478,7 @@ export default function SettingsCompliancePage() {
 
   return (
     <AdminLayout>
+      <AdminSubscriptionGate>
       {toast.show && (
         <CustomToast
           message={toast.message}
@@ -571,6 +573,7 @@ export default function SettingsCompliancePage() {
       
         </div>
       </div>
+      </AdminSubscriptionGate>
     </AdminLayout>
   );
 }

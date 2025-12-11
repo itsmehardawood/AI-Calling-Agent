@@ -3,6 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import AdminLayout from '@/app/components/admin/AdminLayout';
+import AdminSubscriptionGate from '@/app/components/AdminSubscriptionGate';
 import { getApiUrl } from '@/config/api';
 import { 
   Phone, 
@@ -60,7 +61,7 @@ export default function OverviewPage() {
 
         // Make API call
         const apiUrl = getApiUrl(`/api/calls/user-calls-summary?user_id=${userId}`);
-        console.log('Fetching from:', apiUrl); // Debug log
+        // console.log('Fetching from:', apiUrl); // Debug log
         const response = await fetch(apiUrl, {
           headers: {
             'ngrok-skip-browser-warning': 'true', 
@@ -72,6 +73,23 @@ export default function OverviewPage() {
         }
 
         const data = await response.json();
+
+        // Check if there's no data (API returns a message field when no calls found)
+        if (data.message && data.message.includes('No calls found')) {
+          // Set everything to empty/zero state
+          setMetrics({
+            totalCalls: 0,
+            validCalls: 0,
+            qualifiedCalls: 0,
+            qualificationRate: 0,
+            avgCallDuration: '0:00',
+          });
+          setCallsOverTimeData([]);
+          setDurationData([]);
+          setCallsData([]);
+          setLoading(false);
+          return;
+        }
 
         // Format average duration from seconds to mm:ss
         const formatDuration = (seconds) => {
@@ -256,6 +274,7 @@ export default function OverviewPage() {
 
   return (
     <AdminLayout>
+      <AdminSubscriptionGate>
       <div className="space-y-4 sm:space-y-6 py-4 sm:py-5">
         {/* Header */}
         <div className="px-3 sm:px-5">
@@ -336,6 +355,7 @@ export default function OverviewPage() {
           <QuickActions />
         </div>
       </div>
+      </AdminSubscriptionGate>
     </AdminLayout>
   );
 }

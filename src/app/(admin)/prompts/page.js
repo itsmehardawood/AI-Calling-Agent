@@ -11,6 +11,7 @@ import {
   updateProductStatus,
 } from "../../lib/productApi";
 import AdminLayout from "@/app/components/admin/AdminLayout";
+import AdminSubscriptionGate from "@/app/components/AdminSubscriptionGate";
 import CustomToast from "@/app/components/CustomToast";
 import ConfirmDialog from "@/app/components/ConfirmDialog";
 import ProductModal from "@/app/components/admin/ProductModal";
@@ -286,6 +287,7 @@ function PromptsManagementPageInner() {
 
   return (
     <AdminLayout>
+      <AdminSubscriptionGate>
       <div className="min-h-screen bg-gray-50 p-3 sm:p-4 lg:p-6">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
@@ -508,6 +510,7 @@ function PromptsManagementPageInner() {
           />
         )}
       </div>
+      </AdminSubscriptionGate>
     </AdminLayout>
   );
 }

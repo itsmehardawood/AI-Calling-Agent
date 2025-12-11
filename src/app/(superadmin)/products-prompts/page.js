@@ -25,7 +25,7 @@ export default function ProductsPromptsPage() {
       setError(null);
 
       const apiUrl = getApiUrl('/super_admin/superadmin/products');
-      console.log('Fetching from:', apiUrl);
+      // console.log('Fetching from:', apiUrl);
       
       const response = await fetch(apiUrl, {
         headers: {

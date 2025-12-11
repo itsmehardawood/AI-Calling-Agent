@@ -4,6 +4,7 @@
 import { useState, useEffect } from "react";
 import { Target } from "lucide-react";
 import AdminLayout from "@/app/components/admin/AdminLayout";
+import AdminSubscriptionGate from "@/app/components/AdminSubscriptionGate";
 import CustomToast from "@/app/components/CustomToast";
 import StatsCards from "@/app/components/admin/leads/StatsCards";
 import SearchBar from "@/app/components/admin/leads/SearchBar";
@@ -119,6 +120,7 @@ export default function LeadsPage() {
 
   return (
     <AdminLayout>
+      <AdminSubscriptionGate>
       <div className="space-y-4 sm:space-y-6 py-4 sm:py-5">
         {/* Page Header */}
         <div className="px-3 sm:px-5">
@@ -200,6 +202,7 @@ export default function LeadsPage() {
           />
         )}
       </div>
+      </AdminSubscriptionGate>
     </AdminLayout>
   );
 }

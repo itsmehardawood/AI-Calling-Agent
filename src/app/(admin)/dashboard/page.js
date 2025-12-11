@@ -3,6 +3,7 @@
 import { useState, React } from 'react';
 import { useRouter } from 'next/navigation';
 import AdminLayout from '@/app/components/admin/AdminLayout';
+import AdminSubscriptionGate from '@/app/components/AdminSubscriptionGate';
 import DashboardContent from '@/app/components/admin/HomeScreen';
 import { BotIcon, Building, FileTextIcon, LucideLogOut } from 'lucide-react';
 
@@ -16,6 +17,7 @@ export default function AdminDashboard() {
   };
   return (
     <AdminLayout>
+      <AdminSubscriptionGate>
       <div className="md:flex md:items-center md:justify-between">
         <div className="flex-1 min-w-0">
           <h2 className="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate pl-4">
@@ -101,6 +103,7 @@ export default function AdminDashboard() {
           <DashboardContent/>
         </div>
       </div>
+      </AdminSubscriptionGate>
     </AdminLayout>
   );
 }

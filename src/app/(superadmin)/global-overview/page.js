@@ -45,7 +45,7 @@ export default function GlobalOverviewPage() {
 
         // Make API call to get global overview
         const apiUrl = getApiUrl(`/super_admin/global-overview/${role}`);
-        console.log('Fetching from:', apiUrl);
+        // console.log('Fetching from:', apiUrl);
         
         const response = await fetch(apiUrl, {
           headers: {

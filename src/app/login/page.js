@@ -57,6 +57,11 @@ export default function LoginUI() {
         localStorage.setItem('role', result.role);
       }
 
+        if (result.isSubscribed) {
+        localStorage.setItem('isSubscribed', result.isSubscribed);
+
+      }
+
       // Store subscription status
       if (typeof result.isSubscribed !== 'undefined') {
         localStorage.setItem('isSubscribed', result.isSubscribed.toString());
@@ -215,6 +220,20 @@ export default function LoginUI() {
             >
               {loading ? 'Logging in...' : 'Log in'}
             </button>
+
+            {/* Sign Up Text */}
+<div className="text-center mt-2">
+  <p className="text-sm text-gray-700">
+    Don’t have an account?{" "}
+    <Link
+      href="/signup"
+      className="text-blue-600 font-semibold hover:text-blue-700 transition-colors"
+    >
+      Sign up
+    </Link>
+  </p>
+</div>
+
           </form>
 
       

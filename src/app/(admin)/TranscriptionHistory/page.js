@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { getAllChatHistories, getConversationByCallId } from '../../lib/transcriptionApi';
 import AdminLayout from '@/app/components/admin/AdminLayout';
+import AdminSubscriptionGate from '@/app/components/AdminSubscriptionGate';
 import ChatListSidebar from '@/app/components/admin/transcription/ChatListSidebar';
 import ConversationDisplay from '@/app/components/admin/transcription/ConversationDisplay';
 
@@ -64,7 +65,7 @@ export default function TranscriptionHistory() {
       
       setChatHistories(sortedConversations || []);
     } catch (err) {
-      setError('Failed to load chat histories. Please try again.');
+      setError('No history found. Start making calls to see transcriptions here.');
       console.error('Error:', err);
     } finally {
       setLoading(false);
@@ -130,6 +131,7 @@ export default function TranscriptionHistory() {
 
   return (
     <AdminLayout>
+      <AdminSubscriptionGate>
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-3 sm:p-4 lg:p-6">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
@@ -191,6 +193,7 @@ export default function TranscriptionHistory() {
           animation: fade-in 0.3s ease-out;
         }
       `}</style>
+      </AdminSubscriptionGate>
     </AdminLayout>
   );
 }

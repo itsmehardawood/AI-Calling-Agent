@@ -23,14 +23,15 @@ export default function LeadTable({ leads, products, onProductChange }) {
               <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                 Company
               </th>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                Created On
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+             
+              {/* <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                 Product Name
-              </th>
+              </th> */}
               <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                 Assign Product
+              </th>
+               <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                Created On
               </th>
             </tr>
           </thead>
@@ -46,10 +47,8 @@ export default function LeadTable({ leads, products, onProductChange }) {
                 <td className="px-4 py-3 text-sm text-gray-700">
                   {lead.company_name || '-'}
                 </td>
-                <td className="px-4 py-3 text-sm text-gray-700 whitespace-nowrap">
-                  {formatDate(lead.created_at)}
-                </td>
-                <td className="px-4 py-3 text-sm">
+               
+                {/* <td className="px-4 py-3 text-sm">
                   {lead.product_name ? (
                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                       {lead.product_name}
@@ -57,7 +56,7 @@ export default function LeadTable({ leads, products, onProductChange }) {
                   ) : (
                     <span className="text-gray-400">-</span>
                   )}
-                </td>
+                </td> */}
                 <td className="px-4 py-3 text-sm">
                   <select
                     value={lead.product_id || ''}
@@ -71,6 +70,9 @@ export default function LeadTable({ leads, products, onProductChange }) {
                       </option>
                     ))}
                   </select>
+                </td>
+                 <td className="px-4 py-3 text-sm text-gray-700 whitespace-nowrap">
+                  {formatDate(lead.created_at)}
                 </td>
               </tr>
             ))}

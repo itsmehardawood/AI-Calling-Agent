@@ -71,7 +71,7 @@ export default function SubscriptionPlans() {
       // User is logged in - redirect based on role
       if (role.toLowerCase() === 'user') {
         // Redirect to user subscriptions page
-        router.push('/subscriptions');
+        router.push('/subscription-management');
       } else if (role.toLowerCase() === 'admin') {
         // Redirect to admin dashboard
         router.push('/overview');
