@@ -59,7 +59,7 @@ export default function AdminSubscriptionGate({ children }) {
             <div className="mb-6 sm:mb-8">
               <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
                 <CreditCard className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
-                What you'll unlock with a subscription:
+                What you will unlock with a subscription:
               </h3>
               
               <div className="grid sm:grid-cols-2 gap-3 sm:gap-4">

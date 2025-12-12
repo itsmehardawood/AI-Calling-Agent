@@ -2,67 +2,22 @@
 
 import { useState, useEffect } from 'react';
 import { Check, CreditCard, Clock, Calendar } from 'lucide-react';
-import { createSubscription, getUserSubscription } from '../../lib/subscriptionApi';
+import { getPlans, subscribeToPlan, getUserSubscriptionById } from '../../lib/subscriptionApi';
 import AdminLayout from '@/app/components/admin/AdminLayout';
+import CustomToast from '@/app/components/CustomToast';
 
 export default function AdminSubscriptions() {
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [plansLoading, setPlansLoading] = useState(true);
   const [currentSubscription, setCurrentSubscription] = useState(null);
   const [userId, setUserId] = useState(null);
+  const [plans, setPlans] = useState([]);
+  const [toast, setToast] = useState(null);
 
-  const plans = [
-    {
-      id: 'Standard',
-      name: 'Standard',
-      price: '$99',
-      period: '/month',
-      description: 'Perfect for small businesses',
-      minutes: 1000,
-      features: [
-        'Up to 1,000 minutes/month',
-        'Basic analytics dashboard',
-        'Email support',
-        'Single language support',
-        'Standard call routing',
-      ],
-      highlighted: false,
-    },
-    {
-      id: 'Premium',
-      name: 'Premium',
-      price: '$299',
-      period: '/month',
-      description: 'For growing Businesses',
-      minutes: 10000,
-      features: [
-        'Up to 10,000 minutes/month',
-        'Advanced analytics & reports',
-        'Priority email & chat support',
-        'Multi-language support',
-        'Intelligent call routing',
-      ],
-      highlighted: true,
-    },
-    {
-      id: 'enterprise',
-      name: 'Enterprise',
-      price: 'Custom',
-      period: 'pricing',
-      description: 'For large-scale Businesses',
-      minutes: 999999,
-      features: [
-        'Unlimited minutes/month',
-        '24/7 dedicated support',
-        '50+ languages supported',
-        'Advanced AI customization',
-        'Full API access',
-        'Custom integrations',
-        'SLA guarantee',
-      ],
-      highlighted: false,
-    },
-  ];
+  const showToast = (message, type = 'success') => {
+    setToast({ message, type });
+  };
 
   useEffect(() => {
     // Get user_id from localStorage
@@ -71,11 +26,33 @@ export default function AdminSubscriptions() {
       setUserId(storedUserId);
       fetchCurrentSubscription(storedUserId);
     }
+    
+    // Fetch available plans
+    fetchPlans();
   }, []);
+
+  const fetchPlans = async () => {
+    try {
+      setPlansLoading(true);
+      const result = await getPlans();
+      if (result.success && result.data) {
+        // Mark the second plan as highlighted (Premium)
+        const formattedPlans = result.data.map((plan, index) => ({
+          ...plan,
+          highlighted: index === 1, // Highlight the second plan
+        }));
+        setPlans(formattedPlans);
+      }
+    } catch (error) {
+      console.error('Error fetching plans:', error);
+    } finally {
+      setPlansLoading(false);
+    }
+  };
 
   const fetchCurrentSubscription = async (uid) => {
     try {
-      const result = await getUserSubscription(uid);
+      const result = await getUserSubscriptionById(uid);
       if (result.success && result.data) {
         setCurrentSubscription(result.data);
       }
@@ -86,40 +63,28 @@ export default function AdminSubscriptions() {
 
   const handleSubscribe = async (plan) => {
     if (!userId) {
-      alert('Please login to subscribe');
-      return;
-    }
-
-    if (plan.id === 'enterprise') {
-      alert('Please contact our sales team for enterprise pricing');
+      showToast('Please login to subscribe', 'error');
       return;
     }
 
     setLoading(true);
-    setSelectedPlan(plan.id);
+    setSelectedPlan(plan.plan_id);
 
     try {
-      const subscriptionData = {
-        user_id: userId,
-        plan_id: plan.id,
-        minutes_allocated: plan.minutes,
-        is_active: true,
-      };
-
-      const result = await createSubscription(subscriptionData);
+      const result = await subscribeToPlan(userId, plan.plan_id);
 
       if (result.success) {
         localStorage.setItem('isSubscribed', 'true');
-        alert(`Successfully subscribed to ${plan.name} plan!`);
+        showToast(`Successfully subscribed to ${plan.plan_name} plan!`, 'success');
         
         // Refresh subscription data
         await fetchCurrentSubscription(userId);
       } else {
-        alert(`Failed to subscribe: ${result.error}`);
+        showToast(`Failed to subscribe: ${result.error}`, 'error');
       }
     } catch (error) {
       console.error('Error subscribing:', error);
-      alert('An error occurred while subscribing');
+      showToast('An error occurred while subscribing', 'error');
     } finally {
       setLoading(false);
       setSelectedPlan(null);
@@ -138,6 +103,24 @@ export default function AdminSubscriptions() {
   <AdminLayout>
   <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-2 sm:p-3 lg:p-4">
     
+    {/* Toast Notification */}
+    {toast && (
+      <CustomToast
+        message={toast.message}
+        type={toast.type}
+        onClose={() => setToast(null)}
+      />
+    )}
+    
+    {/* Toast Notification */}
+    {toast && (
+      <CustomToast
+        message={toast.message}
+        type={toast.type}
+        onClose={() => setToast(null)}
+      />
+    )}
+    
     {/* Header */}
     <div className="mb-5 px-2 ">
       <h1 className="text-3xl sm:text-4xl font-bold text-gray-900">Subscription Plans</h1>
@@ -147,7 +130,7 @@ export default function AdminSubscriptions() {
     </div>
 
     {/* Current Subscription Card */}
-    {currentSubscription && currentSubscription.is_active ? (
+    {currentSubscription ? (
       <div className="bg-gradient-to-r from-blue-600 to-cyan-600 rounded-xl shadow-md p-4 mb-6 text-white">
         <div className="flex items-start justify-between">
           <div className="flex-1">
@@ -157,29 +140,20 @@ export default function AdminSubscriptions() {
             </div>
 
             <p className="text-xl font-bold mb-3">
-              {currentSubscription.plan_id} Plan
+              {currentSubscription.plan_name} Plan
             </p>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <p className="text-blue-100 text-xs">Minutes Allocated</p>
+                <p className="text-blue-100 text-xs">Call Minutes</p>
                 <p className="text-lg font-semibold">
-                  {currentSubscription.minutes_allocated?.toLocaleString()}
+                  {currentSubscription.call_minutes?.toLocaleString()}
                 </p>
               </div>
               <div>
-                <p className="text-blue-100 text-xs">Minutes Used</p>
+                <p className="text-blue-100 text-xs">Duration</p>
                 <p className="text-lg font-semibold">
-                  {currentSubscription.minutes_used?.toLocaleString() || 0}
-                </p>
-              </div>
-              <div>
-                <p className="text-blue-100 text-xs">Remaining</p>
-                <p className="text-lg font-semibold">
-                  {(
-                    (currentSubscription.minutes_allocated || 0) -
-                    (currentSubscription.minutes_used || 0)
-                  ).toLocaleString()}
+                  {currentSubscription.duration_days} days
                 </p>
               </div>
             </div>
@@ -188,13 +162,13 @@ export default function AdminSubscriptions() {
               <div className="flex items-center gap-1">
                 <Calendar className="h-3 w-3" />
                 <span className="text-xs">
-                  Started: {formatDate(currentSubscription.start_date)}
+                  Started: {formatDate(currentSubscription.subscribed_on)}
                 </span>
               </div>
               <div className="flex items-center gap-1">
                 <Clock className="h-3 w-3" />
                 <span className="text-xs">
-                  Renews: {formatDate(currentSubscription.end_date)}
+                  Expires: {formatDate(currentSubscription.expires_on)}
                 </span>
               </div>
             </div>
@@ -222,88 +196,92 @@ export default function AdminSubscriptions() {
     )}
 
     {/* Plans */}
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6">
-      {plans.map((plan) => (
-        <div
-          key={plan.id}
-          className={`relative rounded-xl transition-all duration-300 hover:shadow-xl ${
-            plan.highlighted
-              ? "bg-gradient-to-br from-cyan-500 to-blue-600 text-white shadow-xl"
-              : "bg-white text-gray-900 border border-gray-200 shadow-md"
-          }`}
-        >
-          {plan.highlighted && (
-            <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-              <span className="bg-cyan-300 text-cyan-900 px-3 py-1 rounded-full text-xs font-bold">
-                MOST POPULAR
-              </span>
-            </div>
-          )}
-
-          <div className="p-4 sm:p-5">
-            <h3 className="text-xl sm:text-2xl font-bold mb-1">{plan.name}</h3>
-            <p
-              className={`text-xs mb-4 ${
-                plan.highlighted ? "text-cyan-100" : "text-gray-600"
-              }`}
-            >
-              {plan.description}
-            </p>
-
-            <div className="mb-5">
-              <div className="flex items-baseline gap-1">
-                <span className="text-3xl sm:text-4xl font-bold">
-                  {plan.price}
-                </span>
-                <span
-                  className={`text-xs ${
-                    plan.highlighted ? "text-cyan-100" : "text-gray-600"
-                  }`}
-                >
-                  {plan.period}
+    {plansLoading ? (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-600"></div>
+      </div>
+    ) : (
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6">
+        {plans.map((plan) => (
+          <div
+            key={plan.plan_id}
+            className={`relative rounded-xl transition-all duration-300 hover:shadow-xl ${
+              plan.highlighted
+                ? "bg-gradient-to-br from-cyan-500 to-blue-600 text-white shadow-xl"
+                : "bg-white text-gray-900 border border-gray-200 shadow-md"
+            }`}
+          >
+            {plan.highlighted && (
+              <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                <span className="bg-cyan-300 text-cyan-900 px-3 py-1 rounded-full text-xs font-bold">
+                  MOST POPULAR
                 </span>
               </div>
-            </div>
+            )}
 
-            <button
-              onClick={() => handleSubscribe(plan)}
-              disabled={loading && selectedPlan === plan.id}
-              className={`w-full py-2 sm:py-3 rounded-md font-semibold transition-all duration-300 mb-6 ${
-                plan.highlighted
-                  ? "bg-white text-cyan-600 hover:bg-gray-100"
-                  : "bg-cyan-500 text-white hover:bg-cyan-600"
-              } disabled:opacity-50 disabled:cursor-not-allowed`}
-            >
-              {loading && selectedPlan === plan.id ? (
-                <span className="flex items-center justify-center gap-2">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
-                  Processing...
-                </span>
-              ) : plan.id === "enterprise" ? (
-                "Contact Sales"
-              ) : currentSubscription?.plan_id === plan.id ? (
-                "Current Plan"
-              ) : (
-                "Subscribe Now"
-              )}
-            </button>
+            <div className="p-4 sm:p-5">
+              <h3 className="text-xl sm:text-2xl font-bold mb-1">{plan.plan_name}</h3>
+              <p
+                className={`text-xs mb-4 ${
+                  plan.highlighted ? "text-cyan-100" : "text-gray-600"
+                }`}
+              >
+                {plan.call_minutes.toLocaleString()} minutes for {plan.duration_days} days
+              </p>
 
-            <div className="space-y-3">
-              {plan.features.map((feature, i) => (
-                <div key={i} className="flex items-start gap-2">
-                  <Check
-                    className={`w-4 h-4 flex-shrink-0 mt-0.5 ${
-                      plan.highlighted ? "text-cyan-200" : "text-cyan-500"
+              <div className="mb-5">
+                <div className="flex items-baseline gap-1">
+                  <span className="text-3xl sm:text-4xl font-bold">
+                    ${plan.price}
+                  </span>
+                  <span
+                    className={`text-xs ${
+                      plan.highlighted ? "text-cyan-100" : "text-gray-600"
                     }`}
-                  />
-                  <span className="text-xs sm:text-sm">{feature}</span>
+                  >
+                    / {plan.duration_days} days
+                  </span>
                 </div>
-              ))}
+              </div>
+
+              <button
+                onClick={() => handleSubscribe(plan)}
+                disabled={loading && selectedPlan === plan.plan_id}
+                className={`w-full py-2 sm:py-3 rounded-md font-semibold transition-all duration-300 mb-6 ${
+                  plan.highlighted
+                    ? "bg-white text-cyan-600 hover:bg-gray-100"
+                    : "bg-cyan-500 text-white hover:bg-cyan-600"
+                } disabled:opacity-50 disabled:cursor-not-allowed`}
+              >
+                {loading && selectedPlan === plan.plan_id ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
+                    Processing...
+                  </span>
+                ) : currentSubscription?.plan_id === plan.plan_id ? (
+                  "Current Plan"
+                ) : (
+                  "Subscribe Now"
+                )}
+              </button>
+
+              <div className="space-y-3">
+                {plan.features && plan.features.map((feature, i) => (
+                  <div key={i} className="flex items-start gap-2">
+                    <Check
+                      className={`w-4 h-4 flex-shrink-0 mt-0.5 ${
+                        plan.highlighted ? "text-cyan-200" : "text-cyan-500"
+                      }`}
+                    />
+                    <span className="text-xs sm:text-sm">{feature}</span>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
-        </div>
-      ))}
-    </div>
+        ))}
+      </div>
+    )}
 
     <div className="mt-12 text-center">
       <p className="text-gray-600 text-sm">All plans include 7-day free trial. Cancel anytime.</p>

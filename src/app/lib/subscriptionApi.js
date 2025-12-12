@@ -1,6 +1,94 @@
 import { apiFetch } from './api.js';
 
 /**
+ * Get all available plans
+ */
+export async function getPlans() {
+  try {
+    const token = localStorage.getItem('access_token');
+    
+    const response = await apiFetch('/api/plans', {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data?.detail || 'Failed to fetch plans');
+    }
+
+    return { success: true, data: data };
+  } catch (error) {
+    console.error('Error fetching plans:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+/**
+ * Subscribe to a plan
+ */
+export async function subscribeToPlan(userId, planId) {
+  try {
+    const token = localStorage.getItem('access_token');
+    
+    const response = await apiFetch('/api/subscribe', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        user_id: userId,
+        plan_id: planId,
+      }),
+    });
+
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data?.detail || 'Failed to subscribe');
+    }
+
+    return { success: true, data };
+  } catch (error) {
+    console.error('Error subscribing to plan:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+/**
+ * Get user's subscription by user_id
+ */
+export async function getUserSubscriptionById(userId) {
+  try {
+    const token = localStorage.getItem('access_token');
+    
+    const response = await apiFetch(`/api/subscription/${userId}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data?.detail || 'Failed to fetch subscription');
+    }
+
+    return { success: true, data };
+  } catch (error) {
+    console.error('Error fetching subscription:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+/**
  * Fetch all subscriptions (Admin only)
  */
 export async function getAllSubscriptions() {

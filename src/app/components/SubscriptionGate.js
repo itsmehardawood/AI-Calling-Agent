@@ -61,7 +61,7 @@ export default function SubscriptionGate({ children }) {
             <div className="bg-blue-50 rounded-lg p-4 text-left">
               <h3 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
                 <CreditCard className="w-5 h-5 text-blue-600" />
-                What you'll get:
+                What you will get:
               </h3>
               <ul className="space-y-2 text-sm text-gray-700">
                 <li className="flex items-start gap-2">
