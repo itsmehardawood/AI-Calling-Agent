@@ -7,6 +7,7 @@ import BusinessProfile from '@/app/components/admin/settings/BusinessProfile';
 import CallScheduling from '@/app/components/admin/settings/CallScheduling';
 import RecordingRetention from '@/app/components/admin/settings/RecordingRetention';
 import ConsentPolicy from '@/app/components/admin/settings/ConsentPolicy';
+import VoiceCloning from '@/app/components/admin/settings/VoiceCloning';
 import { useState, useEffect } from 'react';
 import { 
   saveBusinessProfile, 
@@ -19,7 +20,10 @@ import {
   getConsentPolicy,
   updateCallSchedulingRegion,
   updateConsentPolicy,
-  deleteCallSchedulingRegion
+  deleteCallSchedulingRegion,
+  cloneVoice,
+  getClonedVoice,
+  deleteClonedVoice
 } from '@/app/lib/settingsApi';
 
 export default function SettingsCompliancePage() {
@@ -57,6 +61,13 @@ export default function SettingsCompliancePage() {
   const [isLoadingConsent, setIsLoadingConsent] = useState(false);
   const [isEditingConsent, setIsEditingConsent] = useState(false); // Add this line
 
+  // Voice Cloning State
+  const [currentVoice, setCurrentVoice] = useState(null);
+  const [isSavingVoice, setIsSavingVoice] = useState(false);
+  const [isLoadingVoice, setIsLoadingVoice] = useState(false);
+  const [isEditingVoice, setIsEditingVoice] = useState(false);
+  const [isDeletingVoice, setIsDeletingVoice] = useState(false);
+
   // Loading state for entire page
   const [isLoading, setIsLoading] = useState(true);
 
@@ -73,7 +84,8 @@ export default function SettingsCompliancePage() {
         fetchBusinessProfile(),
         fetchCallScheduling(),
         fetchRecordingRetention(),
-        fetchConsentPolicy()
+        fetchConsentPolicy(),
+        fetchClonedVoice()
       ]);
     } catch (error) {
       console.error('Error loading settings:', error);
@@ -161,6 +173,8 @@ export default function SettingsCompliancePage() {
     setIsLoadingScheduling(true);
     try {
       const response = await getCallScheduling();
+          const userId = localStorage.getItem('user_id'); // For debugging purpose to see in
+    // console.log('Cloning voice for user ID:', userId);
       // console.log('Call scheduling response:', response);
       // console.log('Response regions:', response?.regions);
       // console.log('Response regions length:', response?.regions?.length);
@@ -444,7 +458,72 @@ export default function SettingsCompliancePage() {
   }
 };
 
-  // Save All Handler
+  // Voice Cloning Functions
+  const fetchClonedVoice = async () => {
+    setIsLoadingVoice(true);
+    try {
+      const response = await getClonedVoice();
+      if (response && response.has_custom_voice) {
+        setCurrentVoice({
+          voiceId: response.voice_id,
+          voiceName: response.voice_name,
+          language: response.language,
+          businessId: response.business_id
+        });
+      } else {
+        setCurrentVoice(null);
+      }
+    } catch (error) {
+      console.error('Error fetching cloned voice:', error);
+      setCurrentVoice(null);
+    } finally {
+      setIsLoadingVoice(false);
+    }
+  };
+
+  const handleSaveVoiceCloning = async (audioFile, voiceName) => {
+    setIsSavingVoice(true);
+    try {
+      const response = await cloneVoice(audioFile, voiceName);
+      setToast({ show: true, message: 'Voice cloned successfully!', type: 'success' });
+      setIsEditingVoice(false);
+      
+      // Update current voice with the response
+      setCurrentVoice({
+        voiceId: response.voice_id,
+        voiceName: voiceName,
+        createdAt: new Date().toISOString()
+      });
+      
+      // Refresh voice data
+      await fetchClonedVoice();
+    } catch (error) {
+      console.error('Error cloning voice:', error);
+      setToast({ show: true, message: `Error cloning voice: ${error.message}`, type: 'error' });
+      throw error;
+    } finally {
+      setIsSavingVoice(false);
+    }
+  };
+
+  const handleDeleteVoice = async () => {
+    setIsDeletingVoice(true);
+    try {
+      await deleteClonedVoice();
+      setToast({ show: true, message: 'Custom voice deleted successfully!', type: 'success' });
+      setCurrentVoice(null);
+      
+      // Refresh voice data to confirm deletion
+      await fetchClonedVoice();
+    } catch (error) {
+      console.error('Error deleting voice:', error);
+      setToast({ show: true, message: `Error deleting voice: ${error.message}`, type: 'error' });
+    } finally {
+      setIsDeletingVoice(false);
+    }
+  };
+
+  // Save All Settings Handler
   const handleSaveAll = async () => {
     try {
       if (businessInfo.businessName.trim()) {
@@ -565,6 +644,22 @@ export default function SettingsCompliancePage() {
               onCancel={() => {
                 setIsEditingConsent(false);
                 fetchConsentPolicy();
+              }}
+            />
+
+            {/* Section 5: Voice Cloning */}
+            <VoiceCloning
+              currentVoice={currentVoice}
+              isLoadingVoice={isLoadingVoice}
+              isEditingVoice={isEditingVoice}
+              isSavingVoice={isSavingVoice}
+              isDeletingVoice={isDeletingVoice}
+              onEdit={() => setIsEditingVoice(true)}
+              onSave={handleSaveVoiceCloning}
+              onDelete={handleDeleteVoice}
+              onCancel={() => {
+                setIsEditingVoice(false);
+                fetchClonedVoice();
               }}
             />
 

@@ -459,4 +459,137 @@ export const updateConsentPolicy = async (script) => {
   }
 };
 
+/*
+    POST: Clone Voice (ElevenLabs)
+*/
+export const cloneVoice = async (audioFile, voiceName) => {
+  try {
+      // const userId = getUserId();
+    const userId = localStorage.getItem('user_id'); // For debugging purpose to see in
+    // console.log('Cloning voice for user ID:', userId);
+    if (!userId) {
+      throw new Error('User ID not found. Please log in again.');
+    }
+
+    const formData = new FormData();
+    formData.append('audio_file', audioFile);
+    formData.append('business_id', userId);
+    formData.append('voice_name', voiceName);
+
+    const response = await fetch(`${API_BASE_URL}/api/elevenlabs/clone-voice`, {
+      method: 'POST',
+      headers: {
+        'ngrok-skip-browser-warning': 'true',
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail || `Failed to clone voice: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error cloning voice:', error);
+    throw error;
+  }
+};
+
+/*
+    GET: Get Cloned Voice
+*/
+export const getClonedVoice = async () => {
+  try {
+    const userId = getUserId();
+    if (!userId) {
+      throw new Error('User ID not found. Please log in again.');
+    }
+
+    // console.log('Fetching voice info for user:', userId);
+    const url = `${API_BASE_URL}/api/elevenlabs/voice-info/${userId}`;
+    // console.log('GET Request URL:', url);
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'ngrok-skip-browser-warning': 'true',
+      },
+    });
+
+    // console.log('Voice info response status:', response.status);
+
+    if (!response.ok) {
+      if (response.status === 404) {
+        // console.log('No voice found (404)');
+        return null;
+      }
+      throw new Error(`Failed to fetch cloned voice: ${response.statusText}`);
+    }
+
+    // Check content type before parsing JSON
+    const contentType = response.headers.get('content-type');
+    // console.log('Response content-type:', contentType);
+    
+    if (!contentType || !contentType.includes('application/json')) {
+      // Log first 200 chars of response to debug
+      const text = await response.text();
+      console.warn('getClonedVoice: Received non-JSON response:', text.substring(0, 200));
+      return null;
+    }
+
+    const data = await response.json();
+    // console.log('Voice info data:', data);
+    
+    // Check if custom voice exists
+    if (!data.has_custom_voice) {
+      // console.log('No custom voice configured');
+      return null;
+    }
+    
+    return data;
+  } catch (error) {
+    console.error('Error fetching cloned voice:', error);
+    // Return null instead of throwing to prevent blocking the settings page
+    return null;
+  }
+};
+
+/*
+    DELETE: Delete Custom Voice
+*/
+export const deleteClonedVoice = async () => {
+  try {
+    const userId = getUserId();
+    if (!userId) {
+      throw new Error('User ID not found. Please log in again.');
+    }
+
+    const response = await fetch(`${API_BASE_URL}/api/elevenlabs/voice/${userId}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        'ngrok-skip-browser-warning': 'true',
+      },
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail || `Failed to delete voice: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error deleting cloned voice:', error);
+    throw error;
+  }
+};
+
+
+
+
+
 

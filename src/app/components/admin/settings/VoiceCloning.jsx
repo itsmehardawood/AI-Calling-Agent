@@ -398,7 +398,12 @@ export default function VoiceCloning({
                     <p className="text-sm sm:text-base text-gray-900 uppercase">{currentVoice.language}</p>
                   </div>
                 )}
-
+                {/* {currentVoice.businessId && (
+                  <div>
+                    <p className="text-xs sm:text-sm text-gray-500 mb-1">Business ID</p>
+                    <p className="text-sm sm:text-base font-mono text-gray-600">{currentVoice.businessId}</p>
+                  </div>
+                )} */}
               </div>
               
               {/* Delete Button */}
