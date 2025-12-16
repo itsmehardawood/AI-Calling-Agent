@@ -174,10 +174,7 @@ export default function SettingsCompliancePage() {
     try {
       const response = await getCallScheduling();
           const userId = localStorage.getItem('user_id'); // For debugging purpose to see in
-    // console.log('Cloning voice for user ID:', userId);
-      // console.log('Call scheduling response:', response);
-      // console.log('Response regions:', response?.regions);
-      // console.log('Response regions length:', response?.regions?.length);
+  
       
       if (response && response.regions && Array.isArray(response.regions)) {
         // console.log('Processing regions...');
@@ -648,7 +645,7 @@ export default function SettingsCompliancePage() {
             />
 
             {/* Section 5: Voice Cloning */}
-            <VoiceCloning
+            {/* <VoiceCloning
               currentVoice={currentVoice}
               isLoadingVoice={isLoadingVoice}
               isEditingVoice={isEditingVoice}
@@ -661,7 +658,7 @@ export default function SettingsCompliancePage() {
                 setIsEditingVoice(false);
                 fetchClonedVoice();
               }}
-            />
+            /> */}
 
           </div>
 

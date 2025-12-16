@@ -131,7 +131,7 @@ export default function AdminSubscriptions() {
 
     {/* Current Subscription Card */}
     {currentSubscription ? (
-      <div className="bg-gradient-to-r from-blue-600 to-cyan-600 rounded-xl shadow-md p-4 mb-6 text-white">
+      <div className="bg-gradient-to-r from-blue-900 to-cyan-600 rounded-xl shadow-md p-4 mb-6 text-white">
         <div className="flex items-start justify-between">
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-1">

@@ -14,6 +14,8 @@ const navigation = [
   
   // { name: 'Agents', href: '/users', icon: UserIcon },
   { name: 'Leads', href: '/Leads', icon: Users },
+    { name: 'Inbound Calls', href: '/inbound-calls', icon: Users },
+
   { name: 'Transcription History', href: '/TranscriptionHistory', icon: MessageSquare },
     { name: 'Subscriptions', href: '/subscription-management', icon: CreditCard },
 

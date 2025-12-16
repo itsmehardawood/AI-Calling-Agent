@@ -184,7 +184,7 @@ export const getCallScheduling = async () => {
     });
 
     const data = await parseJsonResponse(response, 'getCallScheduling');
-    console.log('[getCallScheduling] Regions:', data.regions, 'Is array?', Array.isArray(data.regions));
+    // console.log('[getCallScheduling] Regions:', data.regions, 'Is array?', Array.isArray(data.regions));
     return data;
   } catch (error) {
     console.error('[getCallScheduling] Error:', error.message);

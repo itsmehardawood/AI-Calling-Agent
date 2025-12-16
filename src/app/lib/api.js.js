@@ -1,5 +1,5 @@
-const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "https://27f6b9b42b9c.ngrok-free.app";
-// const BASE_URL = "https://27f6b9b42b9c.ngrok-free.app";
+const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ;
+// const BASE_URL = "https://000cbf750982.ngrok-free.app";
 
 export async function apiFetch(endpoint, options = {}) {
   const url = `${BASE_URL}${endpoint}`;
@@ -9,7 +9,7 @@ export async function apiFetch(endpoint, options = {}) {
     const response = await fetch(url, {
       headers: {
         'Content-Type': 'application/json',
-        'ngrok-skip-browser-warning': 'true', // Skip ngrok browser warning
+        'ngrok-skip-browser-warning': '69420', // Skip ngrok browser warning
         ...(options.headers || {}),
       },
       ...options,

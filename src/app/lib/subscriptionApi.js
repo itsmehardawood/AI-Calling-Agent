@@ -1,5 +1,3 @@
-import { apiFetch } from './api.js';
-
 /**
  * Get all available plans
  */
@@ -7,20 +5,20 @@ export async function getPlans() {
   try {
     const token = localStorage.getItem('access_token');
     
-    const response = await apiFetch('/api/plans', {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/plans`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
+        'ngrok-skip-browser-warning': '69420',
       },
     });
 
-    const data = await response.json();
-    
     if (!response.ok) {
-      throw new Error(data?.detail || 'Failed to fetch plans');
+      const errorText = await response.text();
+      throw new Error(errorText || 'Failed to fetch plans');
     }
 
+    const data = await response.json();
     return { success: true, data: data };
   } catch (error) {
     console.error('Error fetching plans:', error);
@@ -35,11 +33,12 @@ export async function subscribeToPlan(userId, planId) {
   try {
     const token = localStorage.getItem('access_token');
     
-    const response = await apiFetch('/api/subscribe', {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/subscribe`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
+        'ngrok-skip-browser-warning': '69420',
       },
       body: JSON.stringify({
         user_id: userId,
@@ -47,12 +46,12 @@ export async function subscribeToPlan(userId, planId) {
       }),
     });
 
-    const data = await response.json();
-    
     if (!response.ok) {
-      throw new Error(data?.detail || 'Failed to subscribe');
+      const errorText = await response.text();
+      throw new Error(errorText || 'Failed to subscribe');
     }
 
+    const data = await response.json();
     return { success: true, data };
   } catch (error) {
     console.error('Error subscribing to plan:', error);
@@ -67,234 +66,23 @@ export async function getUserSubscriptionById(userId) {
   try {
     const token = localStorage.getItem('access_token');
     
-    const response = await apiFetch(`/api/subscription/${userId}`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/subscription/${userId}`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
+        'ngrok-skip-browser-warning': '69420',
       },
     });
 
-    const data = await response.json();
-    
     if (!response.ok) {
-      throw new Error(data?.detail || 'Failed to fetch subscription');
+      const errorText = await response.text();
+      throw new Error(errorText || 'Failed to fetch subscription');
     }
 
+    const data = await response.json();
     return { success: true, data };
   } catch (error) {
     console.error('Error fetching subscription:', error);
-    return { success: false, error: error.message };
-  }
-}
-
-/**
- * Fetch all subscriptions (Admin only)
- */
-export async function getAllSubscriptions() {
-  try {
-    const token = localStorage.getItem('access_token');
-    
-    const response = await apiFetch('/api/subscriptions/admin/all', {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-    });
-
-    const data = await response.json();
-    
-    if (!response.ok) {
-      throw new Error(data?.detail || 'Failed to fetch subscriptions');
-    }
-
-    return { success: true, data: data.subscriptions || [] };
-  } catch (error) {
-    console.error('Error fetching subscriptions:', error);
-    return { success: false, error: error.message };
-  }
-}
-
-/**
- * Get user's current subscription
- */
-export async function getUserSubscription(userId) {
-  try {
-    const token = localStorage.getItem('access_token');
-    
-    const response = await apiFetch(`/api/subscriptions/user/${userId}`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-    });
-
-    const data = await response.json();
-    
-    if (!response.ok) {
-      throw new Error(data?.detail || 'Failed to fetch user subscription');
-    }
-
-    return { success: true, data };
-  } catch (error) {
-    console.error('Error fetching user subscription:', error);
-    return { success: false, error: error.message };
-  }
-}
-
-/**
- * Create or update subscription for a user
- */
-export async function createSubscription(subscriptionData) {
-  try {
-    const token = localStorage.getItem('access_token');
-    
-    const response = await apiFetch('/api/subscriptions/create', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(subscriptionData),
-    });
-
-    const data = await response.json();
-    
-    if (!response.ok) {
-      throw new Error(data?.detail || 'Failed to create subscription');
-    }
-
-    return { success: true, data };
-  } catch (error) {
-    console.error('Error creating subscription:', error);
-    return { success: false, error: error.message };
-  }
-}
-
-/**
- * Update subscription status
- */
-export async function updateSubscription(subscriptionId, updateData) {
-  try {
-    const token = localStorage.getItem('access_token');
-    
-    const response = await apiFetch(`/api/subscriptions/${subscriptionId}`, {
-      method: 'PUT',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(updateData),
-    });
-
-    const data = await response.json();
-    
-    if (!response.ok) {
-      throw new Error(data?.detail || 'Failed to update subscription');
-    }
-
-    return { success: true, data };
-  } catch (error) {
-    console.error('Error updating subscription:', error);
-    return { success: false, error: error.message };
-  }
-}
-
-/**
- * Cancel subscription
- */
-export async function cancelSubscription(subscriptionId) {
-  try {
-    const token = localStorage.getItem('access_token');
-    
-    const response = await apiFetch(`/api/subscriptions/${subscriptionId}/cancel`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-    });
-
-    const data = await response.json();
-    
-    if (!response.ok) {
-      throw new Error(data?.detail || 'Failed to cancel subscription');
-    }
-
-    return { success: true, data };
-  } catch (error) {
-    console.error('Error canceling subscription:', error);
-    return { success: false, error: error.message };
-  }
-}
-
-/**
- * Get subscription history for a user
- */
-export async function getSubscriptionHistory(userId) {
-  try {
-    const token = localStorage.getItem('access_token');
-    
-    const response = await apiFetch(`/api/subscriptions/history/${userId}`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-    });
-
-    const data = await response.json();
-    
-    if (!response.ok) {
-      throw new Error(data?.detail || 'Failed to fetch subscription history');
-    }
-
-    return { success: true, data: data.history || [] };
-  } catch (error) {
-    console.error('Error fetching subscription history:', error);
-    return { success: false, error: error.message };
-  }
-}
-
-/**
- * Check if user has active subscription
- */
-export function checkSubscriptionStatus() {
-  try {
-    const isSubscribed = localStorage.getItem('isSubscribed');
-    return isSubscribed === 'true';
-  } catch (error) {
-    console.error('Error checking subscription status:', error);
-    return false;
-  }
-}
-
-/**
- * Get remaining minutes for user
- */
-export async function getRemainingMinutes(userId) {
-  try {
-    const token = localStorage.getItem('access_token');
-    
-    const response = await apiFetch(`/api/subscriptions/minutes/${userId}`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-    });
-
-    const data = await response.json();
-    
-    if (!response.ok) {
-      throw new Error(data?.detail || 'Failed to fetch remaining minutes');
-    }
-
-    return { success: true, minutes: data.remaining_minutes || 0 };
-  } catch (error) {
-    console.error('Error fetching remaining minutes:', error);
     return { success: false, error: error.message };
   }
 }
