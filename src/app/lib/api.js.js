@@ -6,13 +6,29 @@ export async function apiFetch(endpoint, options = {}) {
   // console.log('API Request:', url, options.method || 'GET');
   
   try {
+    // Check if body is FormData - don't set Content-Type header for FormData
+    const isFormData = options.body instanceof FormData;
+    
+    const defaultHeaders = isFormData 
+      ? {
+          'ngrok-skip-browser-warning': '69420', // Skip ngrok browser warning
+        }
+      : {
+          'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': '69420', // Skip ngrok browser warning
+        };
+    
+    // If headers is explicitly undefined (for FormData), use only default non-Content-Type headers
+    const headers = options.headers === undefined && isFormData
+      ? defaultHeaders
+      : {
+          ...defaultHeaders,
+          ...(options.headers || {}),
+        };
+    
     const response = await fetch(url, {
-      headers: {
-        'Content-Type': 'application/json',
-        'ngrok-skip-browser-warning': '69420', // Skip ngrok browser warning
-        ...(options.headers || {}),
-      },
       ...options,
+      headers,
     });
     
     // console.log('API Response status:', response.status);

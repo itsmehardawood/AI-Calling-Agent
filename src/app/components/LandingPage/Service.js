@@ -211,7 +211,7 @@ const Services = () => {
         </motion.div>
 
         {/* CTA Button */}
-        <motion.div
+        {/* <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.8 }}
@@ -221,7 +221,7 @@ const Services = () => {
           <button className="px-8 py-3.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-medium rounded-lg transition-all duration-300 transform hover:-translate-y-1 shadow-lg hover:shadow-cyan-500/30">
             View All Services
           </button>
-        </motion.div>
+        </motion.div> */}
       </div>
     </section>
   );

@@ -18,6 +18,7 @@ import ProductModal from "@/app/components/admin/ProductModal";
 import ProductCard from "@/app/components/admin/prompts/ProductCard";
 import ProductTable from "@/app/components/admin/prompts/ProductTable";
 import EmptyState from "@/app/components/admin/prompts/EmptyState";
+import KnowledgeBaseSection from "@/app/components/admin/prompts/KnowledgeBaseSection";
 
 
 function PromptsManagementPageInner() {
@@ -31,6 +32,8 @@ function PromptsManagementPageInner() {
   const [confirmDialog, setConfirmDialog] = useState(null);
   const [viewMode, setViewMode] = useState('table'); // 'grid' or 'table'
   const [isMobile, setIsMobile] = useState(false);
+  const [expandedKnowledgeBaseId, setExpandedKnowledgeBaseId] = useState(null);
+  const [showKnowledgeBase, setShowKnowledgeBase] = useState(false);
 
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -285,6 +288,25 @@ function PromptsManagementPageInner() {
     return colors[type] || colors.sales;
   };
 
+  const handleDeleteKnowledgeBase = (productId, productName, deleteCallback) => {
+    setConfirmDialog({
+      title: "Delete Knowledge Base",
+      message: `Are you sure you want to delete all knowledge base data for "${productName}"? This action cannot be undone.`,
+      confirmText: "Delete",
+      cancelText: "Cancel",
+      type: "danger",
+      onConfirm: async () => {
+        await deleteCallback();
+        setConfirmDialog(null);
+      },
+      onCancel: () => setConfirmDialog(null)
+    });
+  };
+
+  const toggleKnowledgeBase = (productId) => {
+    setExpandedKnowledgeBaseId(prev => prev === productId ? null : productId);
+  };
+
   return (
     <AdminLayout>
       <AdminSubscriptionGate>
@@ -300,11 +322,39 @@ function PromptsManagementPageInner() {
                 <p className="text-sm sm:text-base text-gray-600 mt-1">
                   {selectionMode 
                     ? "Choose a product for your call agent"
-                    : "Create and manage products with AI-generated prompts"
+                    : showKnowledgeBase 
+                      ? "Manage knowledge base for your products"
+                      : "Create and manage products with AI-generated prompts"
                   }
                 </p>
               </div>
             </div>
+            
+            {/* Toggle Button for Knowledge Base / Products View */}
+            {!selectionMode && (
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setShowKnowledgeBase(false)}
+                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                    !showKnowledgeBase 
+                      ? 'bg-blue-600 text-white' 
+                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  }`}
+                >
+                  Products
+                </button>
+                <button
+                  onClick={() => setShowKnowledgeBase(true)}
+                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                    showKnowledgeBase 
+                      ? 'bg-blue-600 text-white' 
+                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  }`}
+                >
+                  Knowledge Base
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Selection Banner */}
@@ -331,7 +381,35 @@ function PromptsManagementPageInner() {
             </div>
           )}
 
-          {/* Table Container */}
+          {/* Knowledge Base Section */}
+          {!selectionMode && showKnowledgeBase && (
+            <div className="space-y-4">
+              {loading ? (
+                <div className="text-center py-12 bg-white rounded-lg shadow">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+                  <p className="text-gray-500 mt-4 font-medium">Loading products...</p>
+                </div>
+              ) : products.length === 0 ? (
+                <div className="text-center py-12 bg-white rounded-lg shadow">
+                  <p className="text-gray-500 text-lg">No products found. Please create a product first.</p>
+                </div>
+              ) : (
+                products.map((product) => (
+                  <KnowledgeBaseSection
+                    key={product.id}
+                    product={product}
+                    isExpanded={expandedKnowledgeBaseId === product.id}
+                    onToggle={() => toggleKnowledgeBase(product.id)}
+                    showToast={showToast}
+                    onDelete={handleDeleteKnowledgeBase}
+                  />
+                ))
+              )}
+            </div>
+          )}
+
+          {/* Products Table/Grid Section */}
+          {!showKnowledgeBase && (
           <div className="rounded-lg shadow-sm border border-gray-200">
             <div className="bg-slate-700 flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-gray-200 px-4 sm:px-6 py-3 sm:py-4 gap-3">
               <div className="flex-1 min-w-0">
@@ -454,6 +532,7 @@ function PromptsManagementPageInner() {
               </div>
             )}
           </div>
+          )}
 
           {/* Selection Instructions */}
           {selectionMode && (
