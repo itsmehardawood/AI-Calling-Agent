@@ -91,3 +91,24 @@ export async function addPromptToLead(productId, leadId) {
     throw error;
   }
 }
+
+/**
+ * Get calls by user with date range for CSV export
+ */
+export async function getCallsByUser(userId, startDate, endDate) {
+  try {
+    const response = await apiFetchLeads(
+      `/api/calls/by-user/${userId}?start_date=${startDate}&end_date=${endDate}`
+    );
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to fetch calls');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching calls:', error);
+    throw error;
+  }
+}

@@ -14,6 +14,7 @@ import Pagination from "@/app/components/admin/leads/Pagination";
 import EmptyState from "@/app/components/admin/leads/EmptyState";
 import { getLeads, addPromptToLead } from "../../lib/leadsApi";
 import { getProducts } from "../../lib/productApi";
+import ExportLeadsButton from "@/app/components/admin/leads/ExportLeadsButton";
 
 export default function LeadsPage() {
   const [leads, setLeads] = useState([]);
@@ -142,8 +143,13 @@ export default function LeadsPage() {
         {/* Stats Cards */}
         <StatsCards pagination={pagination} leads={leads} />
 
-        {/* Search Bar */}
-        <SearchBar searchTerm={searchTerm} onSearchChange={setSearchTerm} />
+        {/* Search Bar and Export Button */}
+        <div className="px-3 sm:px-5 flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
+          <div className="flex-1">
+            <SearchBar searchTerm={searchTerm} onSearchChange={setSearchTerm} />
+          </div>
+          <ExportLeadsButton showToast={showToast} />
+        </div>
 
         {/* Loading State */}
         {loading ? (
