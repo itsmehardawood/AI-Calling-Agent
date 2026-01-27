@@ -19,8 +19,7 @@
     "react-dom": "19.2.2",
     "react-intersection-observer": "^9.16.0",
     "recharts": "^3.3.0",
-    "stripe": "^19.1.0",
-    "xlsx": "^0.18.5"
+    "stripe": "^19.1.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
