@@ -15,6 +15,7 @@ import EmptyState from "@/app/components/admin/leads/EmptyState";
 import { getLeads, addPromptToLead } from "../../lib/leadsApi";
 import { getProducts } from "../../lib/productApi";
 import ExportLeadsButton from "@/app/components/admin/leads/ExportLeadsButton";
+import ImportCSVButton from "@/app/components/admin/leads/ImportCSVButton";
 
 export default function LeadsPage() {
   const [leads, setLeads] = useState([]);
@@ -148,7 +149,13 @@ export default function LeadsPage() {
           <div className="flex-1">
             <SearchBar searchTerm={searchTerm} onSearchChange={setSearchTerm} />
           </div>
-          <ExportLeadsButton showToast={showToast} />
+          <div className="flex gap-2 sm:gap-3">
+            <ImportCSVButton 
+              showToast={showToast}
+              onImportSuccess={() => fetchLeads(currentPage)}
+            />
+            <ExportLeadsButton showToast={showToast} />
+          </div>
         </div>
 
         {/* Loading State */}

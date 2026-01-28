@@ -112,3 +112,35 @@ export async function getCallsByUser(userId, startDate, endDate) {
     throw error;
   }
 }
+
+/**
+ * Upload CSV file with leads
+ */
+export async function uploadLeadsCSV(file, userId) {
+  try {
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    // Add userId as a query parameter or in the form data if needed
+    const url = `${BASE_URL}/dynamics/leads/upload-csv${userId ? `?user_id=${userId}` : ''}`;
+    
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'ngrok-skip-browser-warning': 'true',
+        // Don't set Content-Type header - browser will set it automatically with boundary
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || error.message || 'Failed to upload CSV');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error uploading CSV:', error);
+    throw error;
+  }
+}

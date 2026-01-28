@@ -56,7 +56,7 @@ export default function QuickActions() {
     <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg shadow-sm border border-blue-200 p-4 sm:p-6">
       <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4 flex items-center gap-2">
         <div className="w-1 h-5 sm:h-6 bg-blue-600 rounded-full"></div>
-        Quick Actions
+Core Features
       </h3>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {actions.map((action, index) => {
