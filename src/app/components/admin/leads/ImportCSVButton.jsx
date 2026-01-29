@@ -1,8 +1,9 @@
 // components/admin/leads/ImportCSVButton.jsx
 "use client";
 import { useState, useRef } from "react";
-import { Upload, FileUp, X, AlertCircle } from "lucide-react";
+import { Upload, FileUp, X, AlertCircle, FileText } from "lucide-react";
 import { uploadLeadsCSV } from "../../../lib/leadsApi";
+import * as XLSX from 'xlsx';
 
 export default function ImportCSVButton({ showToast, onImportSuccess }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -15,8 +16,11 @@ export default function ImportCSVButton({ showToast, onImportSuccess }) {
     // Validate file type
     if (!file) return;
     
-    if (!file.name.endsWith('.csv')) {
-      showToast("Please select a valid CSV file", 'error');
+    const validExtensions = ['.csv', '.xlsx', '.xls'];
+    const fileExtension = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
+    
+    if (!validExtensions.includes(fileExtension)) {
+      showToast("Please select a valid CSV or Excel file (.csv, .xlsx, .xls)", 'error');
       return;
     }
 
@@ -71,8 +75,15 @@ export default function ImportCSVButton({ showToast, onImportSuccess }) {
         return;
       }
 
+      let fileToUpload = selectedFile;
+
+      // Convert XLSX to CSV if needed
+      if (selectedFile.name.toLowerCase().endsWith('.xlsx') || selectedFile.name.toLowerCase().endsWith('.xls')) {
+        fileToUpload = await convertXLSXToCSV(selectedFile);
+      }
+
       // Upload the file
-      const result = await uploadLeadsCSV(selectedFile, userId);
+      const result = await uploadLeadsCSV(fileToUpload, userId);
 
       if (result.status === 'success') {
         showToast(
@@ -87,11 +98,22 @@ export default function ImportCSVButton({ showToast, onImportSuccess }) {
           onImportSuccess();
         }
       } else {
-        showToast(result.message || "Error importing leads", 'error');
+        // Check for format/pattern errors (500 status)
+        if (result.statusCode === 500 || result.message?.toLowerCase().includes('format') || result.message?.toLowerCase().includes('pattern')) {
+          showToast("File format or pattern is incorrect. Please download the sample file and match the format.", 'error');
+        } else {
+          showToast(result.message || "Format or pattern is incorrect. Please download the sample file and match the format.", 'error');
+        }
       }
     } catch (error) {
       console.error('Error uploading CSV:', error);
-      showToast("Error uploading file: " + error.message, 'error');
+      
+      // Check if error is related to format
+      if (error.response?.status === 500 || error.message?.toLowerCase().includes('format') || error.message?.toLowerCase().includes('pattern')) {
+        showToast("File format or pattern is incorrect. Please download the sample file and match the format.", 'error');
+      } else {
+        showToast("Error uploading file: " + error.message, 'error');
+      }
     } finally {
       setLoading(false);
     }
@@ -115,6 +137,52 @@ export default function ImportCSVButton({ showToast, onImportSuccess }) {
     return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
   };
 
+  // Convert XLSX file to CSV
+  const convertXLSXToCSV = async (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      
+      reader.onload = (e) => {
+        try {
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, { type: 'array' });
+          
+          // Get first sheet
+          const firstSheetName = workbook.SheetNames[0];
+          const worksheet = workbook.Sheets[firstSheetName];
+          
+          // Convert to CSV
+          const csv = XLSX.utils.sheet_to_csv(worksheet);
+          
+          // Create a new File object
+          const csvFile = new File([csv], file.name.replace(/\.(xlsx|xls)$/i, '.csv'), {
+            type: 'text/csv'
+          });
+          
+          resolve(csvFile);
+        } catch (error) {
+          reject(new Error('Failed to convert Excel file to CSV'));
+        }
+      };
+      
+      reader.onerror = () => {
+        reject(new Error('Failed to read file'));
+      };
+      
+      reader.readAsArrayBuffer(file);
+    });
+  };
+
+  const handleDownloadSample = () => {
+    // Download the sample CSV file from public/assets
+    const link = document.createElement('a');
+    link.href = '/assets/test_leads.csv';
+    link.download = 'sample_leads.csv';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <>
       {/* Import Button */}
@@ -123,7 +191,7 @@ export default function ImportCSVButton({ showToast, onImportSuccess }) {
         className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 shadow-sm hover:shadow-md"
       >
         <Upload size={18} />
-        <span className="hidden sm:inline">Import CSV</span>
+        <span className="hidden sm:inline">Import File</span>
         <span className="sm:hidden">Import</span>
       </button>
 
@@ -139,7 +207,7 @@ export default function ImportCSVButton({ showToast, onImportSuccess }) {
                 </div>
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900">Import Leads</h3>
-                  <p className="text-sm text-gray-500">Upload CSV file</p>
+                  <p className="text-sm text-gray-500">Upload CSV or Excel file</p>
                 </div>
               </div>
               <button
@@ -170,7 +238,7 @@ export default function ImportCSVButton({ showToast, onImportSuccess }) {
                 <input
                   ref={fileInputRef}
                   type="file"
-                  accept=".csv"
+                  accept=".csv,.xlsx,.xls"
                   onChange={handleFileInputChange}
                   className="hidden"
                   disabled={loading}
@@ -190,7 +258,7 @@ export default function ImportCSVButton({ showToast, onImportSuccess }) {
                       <p className="text-sm text-gray-500">or drag and drop</p>
                     </div>
                     <p className="text-xs text-gray-400 mt-2">
-                      CSV file (max 10MB)
+                      CSV or Excel file (max 10MB)
                     </p>
                   </div>
                 ) : (
@@ -227,17 +295,27 @@ export default function ImportCSVButton({ showToast, onImportSuccess }) {
                 <div className="flex gap-2">
                   <AlertCircle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
                   <div className="space-y-2">
-                    <p className="text-sm text-amber-800 font-medium">Required CSV Format</p>
+                    <p className="text-sm text-amber-800 font-medium">Required File Format</p>
                     <div className="text-xs text-amber-700 space-y-1">
-                      <p className="font-medium">The CSV file must contain these exact columns:</p>
+                      <p className="font-medium">The file must contain these exact columns:</p>
                       <div className="bg-white/50 rounded px-2 py-1.5 font-mono text-xs">
                         email, company, created_on, phone, user_id, product_id
                       </div>
                       <ul className="list-disc list-inside space-y-0.5 mt-2">
                         <li>Header row must match these column names exactly</li>
-                        <li>Any other format will be considered invalid</li>
+                        <li>Supports CSV, XLSX, and XLS formats</li>
                         <li>Maximum file size: 10MB</li>
                       </ul>
+                      <div className="mt-3 pt-2 border-t border-amber-200">
+                        <button
+                          onClick={handleDownloadSample}
+                          className="flex items-center gap-1.5 text-blue-600 hover:text-blue-700 font-medium transition-colors"
+                        >
+                          <FileText size={14} />
+                          <span className="underline">Download sample file</span>
+                        </button>
+                        <p className="text-xs text-amber-600 mt-1">Use this template to align with the correct format</p>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -266,7 +344,7 @@ export default function ImportCSVButton({ showToast, onImportSuccess }) {
                 ) : (
                   <>
                     <Upload size={18} />
-                    <span>Upload CSV</span>
+                    <span>Upload File</span>
                   </>
                 )}
               </button>

@@ -1,13 +1,14 @@
 // components/admin/leads/ExportLeadsButton.jsx
 "use client";
 import { useState } from "react";
-import { Download, Calendar, X } from "lucide-react";
+import { Download, Calendar, X, FileSpreadsheet } from "lucide-react";
 import { getCallsByUser } from "../../../lib/leadsApi";
-import { exportCallsToCSV } from "../../../utils/csvExport";
+import { exportCalls } from "../../../utils/csvExport";
 
 export default function ExportLeadsButton({ showToast }) {
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [format, setFormat] = useState('csv');
   const [startDate, setStartDate] = useState(() => {
     // Default to 7 days ago
     const date = new Date();
@@ -49,9 +50,9 @@ export default function ExportLeadsButton({ showToast }) {
         return;
       }
 
-      // Export to CSV
-      exportCallsToCSV(calls, startDate, endDate);
-      showToast(`Successfully exported ${calls.length} leads to CSV`, 'success');
+      // Export to selected format
+      exportCalls(calls, startDate, endDate, format);
+      showToast(`Successfully exported ${calls.length} leads to ${format.toUpperCase()}`, 'success');
       setIsOpen(false);
     } catch (error) {
       console.error('Error exporting leads:', error);
@@ -98,6 +99,40 @@ export default function ExportLeadsButton({ showToast }) {
 
             {/* Modal Body */}
             <div className="p-5 space-y-4">
+              {/* Format Selection */}
+              <div>
+                <label className="block text-sm font-medium text-gray-900 mb-2">
+                  <div className="flex items-center gap-2">
+                    <FileSpreadsheet size={16} />
+                    Export Format
+                  </div>
+                </label>
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setFormat('csv')}
+                    className={`flex-1 px-4 py-2 border rounded-lg transition-all ${
+                      format === 'csv'
+                        ? 'bg-green-50 border-green-500 text-green-700 font-medium'
+                        : 'border-gray-300 text-gray-700 hover:border-gray-400'
+                    }`}
+                  >
+                    CSV
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFormat('xlsx')}
+                    className={`flex-1 px-4 py-2 border rounded-lg transition-all ${
+                      format === 'xlsx'
+                        ? 'bg-green-50 border-green-500 text-green-700 font-medium'
+                        : 'border-gray-300 text-gray-700 hover:border-gray-400'
+                    }`}
+                  >
+                    XLSX (Excel)
+                  </button>
+                </div>
+              </div>
+
               {/* Start Date */}
               <div>
                 <label className="block text-sm font-medium text-gray-900 mb-2">
@@ -135,7 +170,7 @@ export default function ExportLeadsButton({ showToast }) {
               {/* Info */}
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                 <p className="text-sm text-blue-800">
-                  This will export all leads with appointment details for the selected date range.
+                  This will export all leads with appointment details for the selected date range in {format.toUpperCase()} format.
                 </p>
               </div>
             </div>
@@ -162,7 +197,7 @@ export default function ExportLeadsButton({ showToast }) {
                 ) : (
                   <>
                     <Download size={18} />
-                    <span>Export CSV</span>
+                    <span>Export {format.toUpperCase()}</span>
                   </>
                 )}
               </button>

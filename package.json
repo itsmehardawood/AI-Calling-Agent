@@ -19,7 +19,8 @@
     "react-dom": "19.2.2",
     "react-intersection-observer": "^9.16.0",
     "recharts": "^3.3.0",
-    "stripe": "^19.1.0"
+    "stripe": "^19.1.0",
+    "xlsx": "https://cdn.sheetjs.com/xlsx-latest/xlsx-latest.tgz"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
