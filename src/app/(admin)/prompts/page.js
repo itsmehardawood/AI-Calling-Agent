@@ -153,8 +153,8 @@ function PromptsManagementPageInner() {
         agentLanguage: formData.agent_language, // Changed to camelCase for backend compatibility
       };
 
-      console.log('Submitting product data:', productData);
-      console.log('Editing product?', !!editingProduct, editingProduct?.id);
+      // console.log('Submitting product data:', productData);
+      // console.log('Editing product?', !!editingProduct, editingProduct?.id);
 
       if (editingProduct) {
      

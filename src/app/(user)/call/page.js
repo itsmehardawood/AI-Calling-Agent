@@ -53,7 +53,7 @@ export default function CallPage() {
       try {
         const data = JSON.parse(storedCallData);
         setCallData(data);
-        console.log('[DEBUG] Loaded call data from localStorage:', data);
+        // console.log('[DEBUG] Loaded call data from localStorage:', data);
       } catch (e) {
         console.error('[DEBUG] Error parsing stored call data:', e);
       }
