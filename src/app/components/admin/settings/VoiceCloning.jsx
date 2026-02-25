@@ -161,7 +161,7 @@ export default function VoiceCloning({
         {/* Left Sidebar */}
         <div className="xl:col-span-1 border-b lg:border-b-0 pb-4 lg:pb-0">
           <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Voice Cloning</h2>
-          <p className="text-xs sm:text-sm text-gray-500 mt-1 sm:mt-2">Clone your custom voice using ElevenLabs</p>
+          <p className="text-xs sm:text-sm text-gray-500 mt-1 sm:mt-2">Create your custom voice directly in our platform.</p>
         </div>
 
         {/* Right Content */}
