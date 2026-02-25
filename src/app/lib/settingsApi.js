@@ -472,7 +472,7 @@ export const cloneVoice = async (audioFile, voiceName) => {
     }
 
     const formData = new FormData();
-    formData.append('audio_file', audioFile);
+    formData.append('file', audioFile);
     formData.append('business_id', userId);
     formData.append('voice_name', voiceName);
 
@@ -502,7 +502,7 @@ export const cloneVoice = async (audioFile, voiceName) => {
 */
 export const getClonedVoice = async () => {
   try {
-    const userId = getUserId();
+const userId = localStorage.getItem('user_id'); 
     if (!userId) {
       throw new Error('User ID not found. Please log in again.');
     }
@@ -543,13 +543,22 @@ export const getClonedVoice = async () => {
     const data = await response.json();
     // console.log('Voice info data:', data);
     
-    // Check if custom voice exists
-    if (!data.has_custom_voice) {
+    // Check if voice data exists
+    if (!data.success || !data.data || !data.data.voice_id) {
       // console.log('No custom voice configured');
       return null;
     }
     
-    return data;
+    // Map API response to expected format
+    const mappedData = {
+      voiceId: data.data.voice_id,
+      voiceName: data.data.voice_name,
+      businessId: data.data.business_id,
+      language: data.data.elevenlabs_details?.verified_languages?.[0] || data.data.elevenlabs_details?.fine_tuning?.language || null,
+      createdAt: data.data.elevenlabs_details?.created_at_unix,
+    };
+    // console.log('Mapped voice data:', mappedData);
+    return mappedData;
   } catch (error) {
     console.error('Error fetching cloned voice:', error);
     // Return null instead of throwing to prevent blocking the settings page

@@ -460,15 +460,14 @@ export default function SettingsCompliancePage() {
     setIsLoadingVoice(true);
     try {
       const response = await getClonedVoice();
-      if (response && response.has_custom_voice) {
-        setCurrentVoice({
-          voiceId: response.voice_id,
-          voiceName: response.voice_name,
-          language: response.language,
-          businessId: response.business_id
-        });
+      console.log('Fetched voice response:', response);
+      if (response) {
+        // Response is already in the correct format from getClonedVoice
+        setCurrentVoice(response);
+        console.log('Set current voice:', response);
       } else {
         setCurrentVoice(null);
+        console.log('No voice data, set to null');
       }
     } catch (error) {
       console.error('Error fetching cloned voice:', error);
@@ -645,7 +644,7 @@ export default function SettingsCompliancePage() {
             />
 
             {/* Section 5: Voice Cloning */}
-            {/* <VoiceCloning
+            <VoiceCloning
               currentVoice={currentVoice}
               isLoadingVoice={isLoadingVoice}
               isEditingVoice={isEditingVoice}
@@ -658,7 +657,7 @@ export default function SettingsCompliancePage() {
                 setIsEditingVoice(false);
                 fetchClonedVoice();
               }}
-            /> */}
+            />
 
           </div>
 
